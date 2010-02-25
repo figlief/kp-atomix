@@ -43,6 +43,7 @@ KP_ATOMIX = (function() {
         gArrows,
         gCurrent,
         gArena,
+        gMolecule,
 
         iLevel,
         gLevel,
@@ -70,11 +71,11 @@ KP_ATOMIX = (function() {
         return OFFSET_Y + row * CELL_HEIGHT;
     }
     function copy_grid(grid){
-        return grid.join('\n').split('\n')
+        return grid.join('\n').split('\n');
     }
 
     function cbHistory(cmd){
-        return function(e){ onHistory(cmd); cancel(); }
+        return function(e){ onHistory(cmd); cancel(); };
     }
 
     function setup_controls(self) {
@@ -111,16 +112,15 @@ KP_ATOMIX = (function() {
 
     function create_arrows(){
         foreach ( 'left right up down'.split(' '), function(dir) {
-            var cell = new_cell(gArena, 'atom arrow-' + dir, 0, -1000 )
-            gArrows.push(cell)
+            var cell = new_cell(gArena, 'atom arrow-' + dir, 0, -1000 );
+            gArrows.push(cell);
             xAddEventListener(cell, 'click', function(evt){onArrowClick(dir);}, false);
         });
     }
 
     function get_item_rowcol(row, col) {
-        var i, item;
-        for (i = 0; i<gItems.length; i++) {
-            item = gItems[i];
+        for (var i = 0; i<gItems.length; i++) {
+            var item = gItems[i];
             if (item.row === row && item.col === col) {
                 return item;
             }
@@ -151,25 +151,25 @@ KP_ATOMIX = (function() {
 
     function decode_move(m){
         m = m.split('-');
-        m[0] = parseInt(m[0]);
-        m[1] = parseInt(m[1]);
-        m[2] = parseInt(m[2]);
-        m[3] = parseInt(m[3]);
+        m[0] = parseInt(m[0],10);
+        m[1] = parseInt(m[1],10);
+        m[2] = parseInt(m[2],10);
+        m[3] = parseInt(m[3],10);
         return m;
     }
 
     function onHistory(cmd) {
 
-        var m, item;
+        var m;
 
         switch (cmd) {
 
           case 'reset':
             start_level(iLevel, true);
-            return
+            return;
 
           case 'undo' :
-            if (!gg.history.length) return;
+            if (!gg.history.length) {return;}
             m = gg.history.pop();
             gg.redo.push(m);
             m = decode_move(m);
@@ -178,7 +178,7 @@ KP_ATOMIX = (function() {
             return;
 
           case 'redo' :
-            if (!gg.redo.length) return;
+            if (!gg.redo.length) {return;}
             m = gg.redo.pop();
             gg.history.push(m);
             m = decode_move(m);
@@ -190,7 +190,7 @@ KP_ATOMIX = (function() {
             return;
         }
 
-        return
+        return;
     }
 
     function onPrevLevel(e) {
@@ -201,7 +201,7 @@ KP_ATOMIX = (function() {
     }
 
     function onNextLevel(e) {
-        var l = gLevels.length -1
+        var l = gLevels.length -1;
         if (iLevel < l) {
             start_level(iLevel+1);
         }
@@ -217,7 +217,7 @@ KP_ATOMIX = (function() {
             col = gCurrent.col,
             cr = row,
             cc = col,
-            grid = gg.grid
+            grid = gg.grid,
             data = grid[row];
 
         switch (dir) {
@@ -262,7 +262,7 @@ KP_ATOMIX = (function() {
         grid[row] = grid[row].slice(0, col) + data + grid[row].slice(col+1);
         gCurrent.row = row;
         gCurrent.col = col;
-        data = 100 * Math.abs(cr - row + cc - col)
+        data = 100 * Math.abs(cr - row + cc - col);
         xAniLine( gCurrent.atom, xpos(col), ypos(row), data, 1, show_arrows);
     }
 
@@ -270,30 +270,27 @@ KP_ATOMIX = (function() {
     function atom_factory(parent, a, row, col, event) {
 
         var spec = gLevel.atoms[a],
-            atom, oAtom, bonds, bond, kind, item;
+            atom, oAtom, bonds, bond;
 
-        atom = new_cell(parent, 'atom', ypos(row), xpos(col))
-        oAtom = {'row':row, 'col':col, 'atom':atom}
-        if (parent === gArena) gItems.push(oAtom);
-        if (event)
+        atom = new_cell(parent, 'atom', ypos(row), xpos(col));
+        oAtom = {'row':row, 'col':col, 'atom':atom};
+        if (parent === gArena) {gItems.push(oAtom);}
+        if (event) {
             xAddEventListener(atom, 'click', function(e) { onClick(oAtom); }, false);
-
-        item = spec[0];
+        }
 
         new_cell(atom, item_kind[spec[0]] + " atom");
         bonds = spec[1];
         for (bond=0; bond<bonds.length; bond++) {
-            new_cell(atom, 'bond ' + bond_kind[bonds.charAt(bond)], 0, 0)
+            new_cell(atom, 'bond ' + bond_kind[bonds.charAt(bond)], 0, 0);
         }
         return atom;
     }
 
     function draw_arena(){
 
-        var item, wall, mol,
-            top, left,
+        var item, mol,
             row, col;
-
 
         for (row=0 ; row<gg.grid.length; row++) {
             item = gg.grid[row];
@@ -310,11 +307,11 @@ KP_ATOMIX = (function() {
             }
         }
 
-        xHeight(gArena, ypos(row) )//+ OFFSET_Y);
+        xHeight(gArena, ypos(row));
         xWidth(gArena, xpos(col) + OFFSET_X);
         xWidth($('controls'),  xpos(col) + OFFSET_X);
 
-        mol = gLevel['molecule'];
+        mol = gLevel.molecule;
 
         for (row=0 ; row<mol.length; row++) {
             item = mol[row];
@@ -339,7 +336,7 @@ KP_ATOMIX = (function() {
 
     function reset_level(lvl) {
         gLevel.gameData = gg = {};
-        gg.grid = copy_grid(gLevel['arena']);
+        gg.grid = copy_grid(gLevel.arena);
         gg.history = [];
         gg.redo = [];
     }
@@ -353,14 +350,14 @@ KP_ATOMIX = (function() {
         gArena = $('arena');
         gArena.innerHTML = '&nbsp;';
 
-        gMolecule = $('molecule')
+        gMolecule = $('molecule');
         gMolecule.innerHTML =  '&nbsp;';
 
         gLevel = gLevels[lvl];
         iLevel = lvl;
 
-        if (!xDef(gLevel.gameData) || reset===true){
-            reset_level()
+        if (!xDef(gLevel.gameData) || reset===true) {
+            reset_level();
         }
         else {
             gg = gLevel.gameData;
@@ -374,7 +371,7 @@ KP_ATOMIX = (function() {
     }
 
     function init(lvl){
-        gLevels = KP_ATOMIX.levels['katomic']
+        gLevels = KP_ATOMIX.levels['katomic'];
         setup_controls();
         start_level(lvl);
     }
