@@ -43,16 +43,6 @@ html
     > hr
     #footer.center
 
-        Powered by
-        a href=http://fossil-scm.org/
-            Fossil
-
-        &nbsp;&nbsp;&nbsp;
-
-        Hosted by
-        a href=http://hcoop.net/ title="The Internet Hosting Co-operative"
-            Hcoop
-
         &nbsp;&nbsp;&nbsp;
 
         Inspired by
