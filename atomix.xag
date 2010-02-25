@@ -1,0 +1,6 @@
+options -app +dep
+libpath /home/kp/cross-browser.com/x/lib/
+output atomix_xlib.js
+appfiles
+atomix.js
+index.html

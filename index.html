@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Atomix</title>
+    <script src='atomix_xlib.js'></script>
+    <script src='atomix.js'></script>
+    <script src='levels/katomic.js'></script>
+
+    <link href="atomix.css" rel="stylesheet" type="text/css" />
+
+    <script>
+
+      xAddEventListener(window, 'load', winOnLoad, false);
+     
+      function winOnLoad()
+      {
+         KP_ATOMIX.init();
+      }
+    </script>
+  </head>
+
+  <body>
+
+    <div id="leveldata">&nbsp;</div>
+
+    <div id="arena">&nbsp;</div>
+    <div id="molecule">&nbsp;</div>
+
+    <div class="center" id="controls">
+
+        <a href="#" id="prev-level">Previous Level</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="history-undo">Undo</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="history-redo">Redo</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="history-reset">Reset</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="next-level">Next Level</a>
+    </div>
+
+    <hr />
+    <div class="center" id="footer">
+
+        Powered by
+        <a href="http://fossil-scm.org/">
+            Fossil
+        </a>
+
+        &nbsp;&nbsp;&nbsp;
+
+        Hosted by
+        <a href="http://hcoop.net/" title="The Internet Hosting Co-operative">
+            Hcoop
+        </a>
+
+        &nbsp;&nbsp;&nbsp;
+
+        Inspired by
+        <a href="http://cross-browser.com/">
+            Cross-Browser.com
+        </a>
+    </div>
+  </body>
+</html>
