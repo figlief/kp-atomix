@@ -91,6 +91,11 @@ KP_ATOMIX = (function () {
 
     }
 
+    function end_animation() {
+        show_arrows();
+        gMoveFlag = false;
+    }
+
     function show_arrow(arrow, row, col) {
         if (gg.grid[row].charAt(col) === '.') {
             xTop(arrow, ypos(row));
@@ -178,7 +183,7 @@ KP_ATOMIX = (function () {
             return;
 
         case 'undo' :
-            if (!gg.history.length) {
+            if (!gg.history.length || gMoveFlag) {
                 return;
             }
             m = gg.history.pop();
@@ -189,7 +194,7 @@ KP_ATOMIX = (function () {
             return;
 
         case 'redo' :
-            if (!gg.redo.length) {
+            if (!gg.redo.length | gMoveFlag) {
                 return;
             }
             m = gg.redo.pop();
@@ -284,7 +289,8 @@ KP_ATOMIX = (function () {
         gCurrent.row = row;
         gCurrent.col = col;
         data = 100 * Math.abs(cr - row + cc - col);
-        xAniLine(gCurrent.atom, xpos(col), ypos(row), data, 1, show_arrows);
+        gMoveFlag = true;
+        xAniLine(gCurrent.atom, xpos(col), ypos(row), data, 1, end_animation);
     }
 
     function atom_factory(parent, a, row, col) {
