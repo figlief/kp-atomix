@@ -1,4 +1,4 @@
-/*! Built from X 4.21 by XAG 1.0. 22Feb10 12:28 UT */
+/*! Built from X 4.21 by XAG 1.0. 26Feb10 12:40 UT */
 xLibrary={version:'4.21',license:'GNU LGPL',url:'http://cross-browser.com/'};
 // xAddClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL

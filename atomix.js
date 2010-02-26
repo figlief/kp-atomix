@@ -54,14 +54,15 @@ KP_ATOMIX = (function () {
         $ = xGetElementById;
 
     function foreach(c, f) {
-        for (var i = 0; i < c.length; i++) {
+        for (var i = 0; i < c.length; i += 1) {
             f(c[i], i, c);
         }
     }
     function format(s) {
         var count = 0, args = arguments;
         return s.replace(/\f/g, function () {
-           ++count; return (count < args.length) ? args[count] : '';
+            count += 1;
+            return (count < args.length) ? args[count] : '';
         });
     }
     function xpos(col) {
@@ -75,7 +76,10 @@ KP_ATOMIX = (function () {
     }
 
     function cbHistory(cmd) {
-        return function (e) { onHistory(cmd); cancel(); };
+        return function (e) {
+            onHistory(cmd);
+            cancel();
+        };
     }
 
     function setup_controls(self) {
@@ -107,20 +111,24 @@ KP_ATOMIX = (function () {
     }
 
     function hide_arrows() {
-        foreach(gArrows, function (a) { xLeft(a, -1000); });
+        foreach(gArrows, function (a) {
+            xLeft(a, -1000);
+        });
     }
 
     function create_arrows() {
         foreach('left right up down'.split(' '), function (dir) {
             var cell = new_cell(gArena, 'atom arrow-' + dir, 0, -1000);
             gArrows.push(cell);
-            xAddEventListener(cell, 'click', function (evt) { onArrowClick(dir); }, false);
+            xAddEventListener(cell, 'click', function (evt) {
+                onArrowClick(dir);
+            }, false);
         });
     }
 
     function get_item_rowcol(row, col) {
         var i, item;
-        for (i = 0; i < gItems.length; i++) {
+        for (i = 0; i < gItems.length; i += 1) {
             item = gItems[i];
             if (item.row === row && item.col === col) {
                 return item;
@@ -150,7 +158,7 @@ KP_ATOMIX = (function () {
         xPreventDefault(e);
     }
 
-    function decode_move (m){
+    function decode_move(m) {
         m = m.split('-');
         m[0] = parseInt(m[0], 10);
         m[1] = parseInt(m[1], 10);
@@ -165,12 +173,14 @@ KP_ATOMIX = (function () {
 
         switch (cmd) {
 
-          case 'reset':
+        case 'reset':
             start_level(iLevel, true);
             return;
 
-          case 'undo' :
-            if (!gg.history.length) {return;}
+        case 'undo' :
+            if (!gg.history.length) {
+                return;
+            }
             m = gg.history.pop();
             gg.redo.push(m);
             m = decode_move(m);
@@ -178,8 +188,10 @@ KP_ATOMIX = (function () {
             move_current_atom(m[0], m[1]);
             return;
 
-          case 'redo' :
-            if (!gg.redo.length) {return; }
+        case 'redo' :
+            if (!gg.redo.length) {
+                return;
+            }
             m = gg.redo.pop();
             gg.history.push(m);
             m = decode_move(m);
@@ -187,7 +199,7 @@ KP_ATOMIX = (function () {
             move_current_atom(m[2], m[3]);
             return;
 
-          default:
+        default:
             return;
         }
 
@@ -224,16 +236,24 @@ KP_ATOMIX = (function () {
         switch (dir) {
 
         case 'left':
-            while (data.charAt(col - 1) === '.') { --col; }
+            while (data.charAt(col - 1) === '.') {
+                col -= 1;
+            }
             break;
         case 'right':
-            while (data.charAt(col + 1) === '.') { ++col; }
+            while (data.charAt(col + 1) === '.') {
+                col += 1;
+            }
             break;
         case 'up':
-            while (grid[row - 1].charAt(col) === '.') { --row; }
+            while (grid[row - 1].charAt(col) === '.') {
+                row -= 1;
+            }
             break;
         case 'down':
-            while (grid[row + 1].charAt(col) === '.') { ++row; }
+            while (grid[row + 1].charAt(col) === '.') {
+                row += 1;
+            }
             break;
 
         default:
@@ -267,22 +287,23 @@ KP_ATOMIX = (function () {
         xAniLine(gCurrent.atom, xpos(col), ypos(row), data, 1, show_arrows);
     }
 
-
-    function atom_factory(parent, a, row, col, event) {
+    function atom_factory(parent, a, row, col) {
 
         var spec = gLevel.atoms[a],
             atom, oAtom, bonds, bond;
 
         atom = new_cell(parent, 'atom', ypos(row), xpos(col));
         oAtom = {'row': row, 'col': col, 'atom': atom};
-        if (parent === gArena) {gItems.push(oAtom); }
-        if (event) {
-            xAddEventListener(atom, 'click', function (e) { onClick(oAtom); }, false);
+        if (parent === gArena) {
+            gItems.push(oAtom);
+            xAddEventListener(atom, 'click', function (e) {
+                onClick(oAtom);
+            }, false);
         }
 
         new_cell(atom, item_kind[spec[0]] + " atom");
         bonds = spec[1];
-        for (bond = 0; bond < bonds.length; bond++) {
+        for (bond = 0; bond < bonds.length; bond += 1) {
             new_cell(atom, 'bond ' + bond_kind[bonds.charAt(bond)], 0, 0);
         }
         return atom;
@@ -293,17 +314,18 @@ KP_ATOMIX = (function () {
         var item, mol,
             row, col;
 
-        for (row = 0 ; row < gg.grid.length; row++) {
+        for (row = 0 ; row < gg.grid.length; row += 1) {
             item = gg.grid[row];
-            for (col = 0; col < item.length; col++) {
+            for (col = 0; col < item.length; col += 1) {
                 switch (item.charAt(col)) {
-                    case '#':
-                        new_cell(gArena, 'arena-wall', ypos(row), xpos(col));
-                        break;
-                    case '.':
-                        break;
-                    default:
-                        atom_factory(gArena, item.charAt(col), row, col, true);
+
+                case '#':
+                    new_cell(gArena, 'arena-wall', ypos(row), xpos(col));
+                    break;
+                case '.':
+                    break;
+                default:
+                    atom_factory(gArena, item.charAt(col), row, col);
                 }
             }
         }
@@ -314,11 +336,11 @@ KP_ATOMIX = (function () {
 
         mol = gLevel.molecule;
 
-        for (row=0 ; row < mol.length; row++) {
+        for (row = 0 ; row < mol.length; row += 1) {
             item = mol[row];
-            for (col = 0; col < item.length; col++) {
+            for (col = 0; col < item.length; col += 1) {
                 if (item.charAt(col) !== '.') {
-                    atom_factory(gMolecule, item.charAt(col), row, col, false);
+                    atom_factory(gMolecule, item.charAt(col), row, col);
                 }
             }
         }
@@ -332,7 +354,12 @@ KP_ATOMIX = (function () {
     }
 
     function show_level_data() {
-         $('leveldata').innerHTML = format('<h4>Level \f: \f (\f moves)</h4>', iLevel + 1, gLevel.name, gg.history.length);
+        $('leveldata').innerHTML = format(
+            '<h4>Level \f: \f (\f moves)</h4>',
+            iLevel + 1,
+            gLevel.name,
+            gg.history.length
+        );
     }
 
     function reset_level(lvl) {
@@ -381,4 +408,4 @@ KP_ATOMIX = (function () {
         init: init,
         levels: {}
     };
-})();
+}());
