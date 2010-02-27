@@ -21,26 +21,40 @@
 
   <body>
 
-    <div id="leveldata">&nbsp;</div>
+    <form>
+      <div class="center" id="controls">
+
+        <span id="selectors">&nbsp;</span>
+
+
+        <br />
+
+        <a href="#" id="prev-level">Prev Level</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="next-level">Next Level</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="history-reset">Reset Level</a>
+
+        <br />
+      </div>
+    </form>
+
+    <hr />
 
     <div id="arena">&nbsp;</div>
     <div id="molecule">&nbsp;</div>
 
-    <div class="center" id="controls">
+    <div class="center" id="move-controls">
 
-        <a href="#" id="prev-level">Previous Level</a>
+      <a href="#" id="history-undo">Undo Move</a>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="history-undo">Undo</a>
+      &nbsp;&nbsp;&nbsp;
+      <span id="move-no">&nbsp;</span>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="history-redo">Redo</a>
-
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="history-reset">Reset</a>
-
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="next-level">Next Level</a>
+      &nbsp;&nbsp;&nbsp;
+      <a href="#" id="history-redo">Redo Move</a>
     </div>
 
     <hr />

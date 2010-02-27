@@ -18,26 +18,38 @@ html
 
   body
 
-    #leveldata | &nbsp;
+    form
+      #controls.center
+
+        span#selectors | &nbsp;
+
+
+        > br
+
+        a#prev-level href=# | Prev Level
+
+        &nbsp;&nbsp;&nbsp;
+        a#next-level href=# | Next Level
+
+        &nbsp;&nbsp;&nbsp;
+        a#history-reset href=# | Reset Level
+
+        > br
+
+    > hr
 
     #arena | &nbsp;
     #molecule | &nbsp;
 
-    #controls.center
+    #move-controls.center
 
-        a#prev-level href=# | Previous Level
+      a#history-undo href=# | Undo Move
 
-        &nbsp;&nbsp;&nbsp;
-        a#history-undo href=# | Undo
+      &nbsp;&nbsp;&nbsp;
+      span#move-no | &nbsp;
 
-        &nbsp;&nbsp;&nbsp;
-        a#history-redo href=# | Redo
-
-        &nbsp;&nbsp;&nbsp;
-        a#history-reset href=# | Reset
-
-        &nbsp;&nbsp;&nbsp;
-        a#next-level href=# | Next Level
+      &nbsp;&nbsp;&nbsp;
+      a#history-redo href=# | Redo Move
 
     > hr
     #footer.center

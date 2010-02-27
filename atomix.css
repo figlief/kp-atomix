@@ -77,4 +77,13 @@ html, body, .atom, .bond {
   position: absolute;
 }
 
+#controls {
+  padding: 10px;
+  padding-top: 20px;
+}
+
+#move-controls {
+  
+}
+
 #footer { font-size: smaller; }
