@@ -15,7 +15,14 @@ def main():
 
     os.system('%s %s'%(XAG, PROJECT))
 
-    txt =open(jsLib, 'rb').read()
+    fp =open(jsLib, 'rb')
+    txt = fp.read()
+    fp.close()
+
+    fp = open(jsLib, 'wb')
+    fp.write(txt.replace('\r', ''))
+    fp.close()
+
     txt += open(jsMain, 'rb').read()
 
     fp = open(tmp, 'wb')

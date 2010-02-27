@@ -44,6 +44,7 @@ KP_ATOMIX = (function () {
         gCurrent,
         gArena,
         gMolecule,
+        gMoveFlag,
 
         iLevel,
         gLevel,
