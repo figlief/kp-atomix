@@ -77,19 +77,16 @@ KP_ATOMIX = (function () {
         return grid.join('\n').split('\n');
     }
 
-    function cbHistory(cmd) {
-        return function (e) {
-            onHistory(cmd);
+    function addClickLink(cmd) {
+        xAddEventListener($(cmd), 'click', function (e) {
             cancel(e);
-        };
+            onClickLink(cmd);
+        }, false);
     }
 
-    function setup_controls(self) {
-        xAddEventListener($('next-level'), 'click', onNextLevel, false);
-        xAddEventListener($('prev-level'), 'click', onPrevLevel, false);
-        xAddEventListener($('history-reset'), 'click', cbHistory('reset'), false);
-        xAddEventListener($('history-undo'), 'click', cbHistory('undo'), false);
-        xAddEventListener($('history-redo'), 'click', cbHistory('redo'), false);
+    function setup_controls() {
+        var ctrls = "next-level prev-level history-reset history-undo history-redo";
+        foreach(ctrls.split(' '), addClickLink )
     }
 
     function end_animation() {
@@ -170,12 +167,11 @@ KP_ATOMIX = (function () {
             name = format('Level \f: \f', level + 1, gLevels[level].name);
             option = document.createElement('option');
             option.text = name;
-
             select.appendChild(option);
         }
         xAddEventListener(select, 'change', function (e) {
-            onLevelSelect(select, gLevel);
             cancel(e);
+            setTimeout(function () {onLevelSelect(select, gLevel)}, 1);
         }, false);
         return ;
 
@@ -199,17 +195,32 @@ KP_ATOMIX = (function () {
         start_level(gLevelSelect.selectedIndex);
     }
 
-    function onHistory(cmd) {
+    function onClickLink(cmd) {
 
-        var m;
+        var m, l;
 
         switch (cmd) {
 
-        case 'reset':
+        case 'next-level':
+            l = gLevels.length - 1;
+            if (iLevel < l) {
+                gLevelSelect.selectedIndex = iLevel + 1;
+                start_level(iLevel + 1);
+            }
+            return;
+
+        case 'prev-level':
+            if (iLevel > 0) {
+                gLevelSelect.selectedIndex = iLevel - 1;
+                start_level(iLevel - 1);
+            }
+            return;
+
+        case 'history-reset':
             start_level(iLevel, true);
             return;
 
-        case 'undo' :
+        case 'history-undo' :
             if (!gg.history.length || gMoveFlag) {
                 return;
             }
@@ -220,7 +231,7 @@ KP_ATOMIX = (function () {
             move_current_atom(m[0], m[1]);
             return;
 
-        case 'redo' :
+        case 'history-redo' :
             if (!gg.redo.length | gMoveFlag) {
                 return;
             }
@@ -236,23 +247,6 @@ KP_ATOMIX = (function () {
         }
 
         return;
-    }
-
-    function onPrevLevel(e) {
-        cancel();
-        if (iLevel > 0) {
-            gLevelSelect.selectedIndex = iLevel - 1;
-            start_level(iLevel - 1);
-        }
-    }
-
-    function onNextLevel(e) {
-        cancel();
-        var l = gLevels.length - 1;
-        if (iLevel < l) {
-            gLevelSelect.selectedIndex = iLevel + 1;
-            start_level(iLevel + 1);
-        }
     }
 
     function onClick(oAtom) {
