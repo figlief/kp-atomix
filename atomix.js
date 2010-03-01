@@ -80,7 +80,7 @@ KP_ATOMIX = (function () {
     function cbHistory(cmd) {
         return function (e) {
             onHistory(cmd);
-            cancel();
+            cancel(e);
         };
     }
 
