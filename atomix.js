@@ -305,6 +305,7 @@ KP_ATOMIX = (function () {
             gg.history.push(format('\f-\f-\f-\f', cr, cc, row, col));
             gg.redo = [];
             move_current_atom(row, col);
+            test_for_success();
         }
     }
 
@@ -411,6 +412,19 @@ KP_ATOMIX = (function () {
         gg.grid = copy_grid(gLevel.arena);
         gg.history = [];
         gg.redo = [];
+    }
+
+    function test_for_success() {
+        var grid = gg.grid.join('').replace(/#/g, '.'),
+            grid0 = gg.grid[0].replace(/./g, '.'),
+            mol0 = gLevel.molecule[0],
+            rep0 = grid0.substring(mol0.length),
+            molecule = gLevel.molecule.join(
+                gg.grid[0].replace(/./g, '.').substring(gLevel.molecule[0].length)
+            );
+        if (grid.indexOf(molecule) !== -1) {
+            onCompleteLevel();
+        }
     }
 
     function start_level(lvl, reset) {
