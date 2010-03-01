@@ -83,7 +83,43 @@ html, body, .atom, .bond {
 }
 
 #move-controls {
-  
+
 }
 
 #footer { font-size: smaller; }
+
+/*  Modal Dialog */
+
+/*
+  This element is dynamically created. There is only one per page.
+  xModalDialog assumes this class name.
+*/
+
+.xModalDialogGreyElement {
+  position: absolute;
+  overflow: hidden;
+  width: 10px; height: 10px;
+  left: -10px; top: -10px;
+  z-index: 100;
+  opacity: .3; /* CSS3 */
+  background-color: #000;
+  filter: alpha(opacity=30);
+}
+
+#success-dialog {
+  position: absolute;
+  left: -500px;
+  width: 400px;
+  padding: 0;
+  color: #BF8660;
+  background-color: #FFF;
+  border: 2px solid #BF8660;
+
+  z-index: 101;
+
+  text-align:center;
+
+}
+
+
+

@@ -84,10 +84,6 @@ KP_ATOMIX = (function () {
         }, false);
     }
 
-    function setup_controls() {
-        var ctrls = "next-level prev-level history-reset history-undo history-redo";
-        foreach(ctrls.split(' '), addClickLink )
-    }
 
     function end_animation() {
         show_arrows();
@@ -124,7 +120,7 @@ KP_ATOMIX = (function () {
             var cell = new_cell(gArena, 'atom arrow-' + dir, 0, -1000);
             gArrows.push(cell);
             xAddEventListener(cell, 'click', function (evt) {
-                onArrowClick(dir);
+                onClickArrow(dir);
             }, false);
         });
     }
@@ -195,11 +191,28 @@ KP_ATOMIX = (function () {
         start_level(gLevelSelect.selectedIndex);
     }
 
+    function onCompleteLevel() {
+        $('success-message').innerHTML = format(
+            "You completed this level <br /> in <b>\f</b> moves.",
+            gg.history.length
+        );
+
+        xModalDialog.instances['success-dialog'].show();
+    }
+
+    function setup_controls() {
+        var ctrls = "test-dialog next-level prev-level history-reset history-undo history-redo";
+        foreach(ctrls.split(' '), addClickLink )
+    }
+
     function onClickLink(cmd) {
 
         var m, l;
 
         switch (cmd) {
+
+        case 'test-dialog':
+            onCompleteLevel();
 
         case 'next-level':
             l = gLevels.length - 1;
@@ -249,11 +262,11 @@ KP_ATOMIX = (function () {
         return;
     }
 
-    function onClick(oAtom) {
+    function onClickAtom(oAtom) {
         set_current(oAtom);
     }
 
-    function onArrowClick(dir) {
+    function onClickArrow(dir) {
         var row = gCurrent.row,
             col = gCurrent.col,
             cr = row,
@@ -326,7 +339,7 @@ KP_ATOMIX = (function () {
         if (parent === gArena) {
             gItems.push(oAtom);
             xAddEventListener(atom, 'click', function (e) {
-                onClick(oAtom);
+                onClickAtom(oAtom);
             }, false);
         }
 
@@ -361,7 +374,6 @@ KP_ATOMIX = (function () {
 
         xHeight(gArena, ypos(row));
         xWidth(gArena, xpos(col) + OFFSET_X);
-
 
         mol = gLevel.molecule;
 
@@ -416,7 +428,6 @@ KP_ATOMIX = (function () {
         gLevel = gLevels[lvl];
         iLevel = lvl;
 
-
         if (!xDef(gLevel.gameData) || reset === true) {
             reset_level();
         }
@@ -429,7 +440,6 @@ KP_ATOMIX = (function () {
         draw_arena();
         show_level_data();
 
-
     }
 
     function init(lvl) {
@@ -437,6 +447,11 @@ KP_ATOMIX = (function () {
         setup_controls();
         create_selectors($('selectors'));
         start_level(lvl);
+        var dialog = new xModalDialog('success-dialog');
+        xAddEventListener('success-form', 'submit', function(e){
+            cancel(e);
+            dialog.hide();
+        });
     }
 
     return {

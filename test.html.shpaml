@@ -1,7 +1,7 @@
 <!doctype html>
 html
   head
-    title | Atomix
+    title | kp-atomix - a javascript game from Krum Pet
     <script src='atomix_xlib.js'></script>
     <script src='atomix.js'></script>
     <script src='levels/katomic.js'></script>
@@ -10,20 +10,31 @@ html
 
     script
 
+     |
      | xAddEventListener(window, 'load', winOnLoad, false);
+     |
      |
      | function winOnLoad()
      | {
-     |    KP_ATOMIX.init();
+     |    if (
+     |       document.getElementById &&
+     |       document.createElement &&
+     |       document.body.appendChild
+     |    ) {
+     |         KP_ATOMIX.init();
+     |      }
      | }
+     |
+     | window.onunload = function(){}
 
   body
 
     form
       #controls.center
 
+        a#test-dialog href=# | Test Dialog
+        &nbsp;&nbsp;&nbsp;
         span#selectors | &nbsp;
-
 
         > br
 
@@ -52,11 +63,29 @@ html
       &nbsp;&nbsp;&nbsp;
       a#history-redo href=# | Redo Move
 
+
+    #success-dialog
+
+      h4 | Well Done!
+
+      form#success-form
+
+          p#success-message | &nbsp;
+
+          p.buttons
+            > input type=submit value=Close
+
+
     > hr
     #footer.center
 
-        &nbsp;&nbsp;&nbsp;
+      kp-atomix is a javascript version of the
+      a href=http://kde.org/ |  kde
+      game
+      a href="http://games.kde.org/game.php?game=katomic"
+        katomic
 
-        Inspired by
-        a href=http://cross-browser.com/
-            Cross-Browser.com
+      > br
+      Inspired by
+      a href=http://cross-browser.com/
+          Cross-Browser.com

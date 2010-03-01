@@ -1,5 +1,54 @@
-/*! Built from X 4.21 by XAG 1.0. 27Feb10 18:20 UT */
+/*! Built from X 4.21 by XAG 1.0. 01Mar10 13:31 UT */
 xLibrary={version:'4.21',license:'GNU LGPL',url:'http://cross-browser.com/'};
+// xModalDialog r2, Copyright 2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xModalDialog(sDialogId) // Object Prototype
+{
+  /*@cc_on @if (@_jscript_version >= 5.5) @*/ //  not supported in IE until v5.5
+  this.dialog = xGetElementById(sDialogId);
+  xModalDialog.instances[sDialogId] = this;
+  var e = xModalDialog.grey;
+  if (!e) { // only one per page
+    e = document.createElement('div');
+    e.className = 'xModalDialogGreyElement';
+    xModalDialog.grey = document.body.appendChild(e);
+  }
+  /*@end @*/
+}
+// Public Methods
+xModalDialog.prototype.show = function()
+{
+  var ds, e = xModalDialog.grey;
+  if (e) {
+    this.dialog.greyZIndex = xGetComputedStyle(e, 'z-index', 1);
+    e.style.zIndex = xGetComputedStyle(this.dialog, 'z-index', 1) - 1;
+    ds = xDocSize();
+    xMoveTo(e, 0, 0);
+    xResizeTo(e, ds.w, ds.h);
+    if (this.dialog) {
+      xMoveTo(this.dialog,
+              xScrollLeft()+(xClientWidth()-this.dialog.offsetWidth)/2,
+              xScrollTop()+(xClientHeight()-this.dialog.offsetHeight)/2);
+    }
+  }
+};
+xModalDialog.prototype.hide = function(dialogOnly)
+{
+  var e = xModalDialog.grey;
+  if (e) {
+    if (!dialogOnly) {
+      xResizeTo(e, 10, 10);
+      xMoveTo(e, -10, -10);
+    }
+    if (this.dialog) {
+      e.style.zIndex = this.dialog.greyZIndex;
+      xMoveTo(this.dialog, -this.dialog.offsetWidth, 0);
+    }
+  }
+};
+// Static Properties
+xModalDialog.grey = null;
+xModalDialog.instances = {};
 // xAddClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
 function xAddClass(e, c)
@@ -110,6 +159,27 @@ function xDef()
 {
   for(var i=0; i<arguments.length; ++i){if(typeof(arguments[i])=='undefined') return false;}
   return true;
+}
+// xDocSize r1, Copyright 2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xDocSize()
+{
+  var b=document.body, e=document.documentElement;
+  var esw=0, eow=0, bsw=0, bow=0, esh=0, eoh=0, bsh=0, boh=0;
+  if (e) {
+    esw = e.scrollWidth;
+    eow = e.offsetWidth;
+    esh = e.scrollHeight;
+    eoh = e.offsetHeight;
+  }
+  if (b) {
+    bsw = b.scrollWidth;
+    bow = b.offsetWidth;
+    bsh = b.scrollHeight;
+    boh = b.offsetHeight;
+  }
+//  alert('compatMode: ' + document.compatMode + '\n\ndocumentElement.scrollHeight: ' + esh + '\ndocumentElement.offsetHeight: ' + eoh + '\nbody.scrollHeight: ' + bsh + '\nbody.offsetHeight: ' + boh + '\n\ndocumentElement.scrollWidth: ' + esw + '\ndocumentElement.offsetWidth: ' + eow + '\nbody.scrollWidth: ' + bsw + '\nbody.offsetWidth: ' + bow);
+  return {w:Math.max(esw,eow,bsw,bow),h:Math.max(esh,eoh,bsh,boh)};
 }
 // xGetComputedStyle r7, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
@@ -232,6 +302,49 @@ function xPreventDefault(e)
 {
   if (e && e.preventDefault) e.preventDefault();
   else if (window.event) window.event.returnValue = false;
+}
+// xResizeTo r2, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xResizeTo(e, w, h)
+{
+  return {
+    w: xWidth(e, w),
+    h: xHeight(e, h)
+  };
+}
+// xScrollLeft r4, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xScrollLeft(e, bWin)
+{
+  var w, offset=0;
+  if (!xDef(e) || bWin || e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    w = window;
+    if (bWin && e) w = e;
+    if(w.document.documentElement && w.document.documentElement.scrollLeft) offset=w.document.documentElement.scrollLeft;
+    else if(w.document.body && xDef(w.document.body.scrollLeft)) offset=w.document.body.scrollLeft;
+  }
+  else {
+    e = xGetElementById(e);
+    if (e && xNum(e.scrollLeft)) offset = e.scrollLeft;
+  }
+  return offset;
+}
+// xScrollTop r4, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xScrollTop(e, bWin)
+{
+  var w, offset=0;
+  if (!xDef(e) || bWin || e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    w = window;
+    if (bWin && e) w = e;
+    if(w.document.documentElement && w.document.documentElement.scrollTop) offset=w.document.documentElement.scrollTop;
+    else if(w.document.body && xDef(w.document.body.scrollTop)) offset=w.document.body.scrollTop;
+  }
+  else {
+    e = xGetElementById(e);
+    if (e && xNum(e.scrollTop)) offset = e.scrollTop;
+  }
+  return offset;
 }
 // xStopPropagation r1, Copyright 2004-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
