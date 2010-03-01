@@ -416,9 +416,6 @@ KP_ATOMIX = (function () {
 
     function test_for_success() {
         var grid = gg.grid.join('').replace(/#/g, '.'),
-            grid0 = gg.grid[0].replace(/./g, '.'),
-            mol0 = gLevel.molecule[0],
-            rep0 = grid0.substring(mol0.length),
             molecule = gLevel.molecule.join(
                 gg.grid[0].replace(/./g, '.').substring(gLevel.molecule[0].length)
             );
