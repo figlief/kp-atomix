@@ -11,22 +11,18 @@
 
     <script>
 
-     
-      xAddEventListener(window, 'load', winOnLoad, false);
-     
-     
-      function winOnLoad()
-      {
-         if (
-            document.getElementById &&
-            document.createElement &&
-            document.body.appendChild
-         ) {
-              KP_ATOMIX.init();
-           }
-      }
-     
-      window.onunload = function(){}
+     xAddEventListener(window, 'load', winOnLoad, false);
+     function winOnLoad()
+     {
+        if (
+           document.getElementById &&
+           document.createElement &&
+           document.body.appendChild
+        ) {
+             KP_ATOMIX.init();
+          }
+     }
+     window.onunload = function(){}
     </script>
   </head>
 
@@ -90,7 +86,7 @@
       kp-atomix is a javascript version of the
       <a href="http://kde.org/"> kde</a>
       game
-      <a href="http://games.kde.org/game.php?game="katomic"">
+      <a href="http://games.kde.org/game.php?game=katomic">
         katomic
       </a>
 

@@ -11,10 +11,7 @@ html
 
     script
 
-     |
      | xAddEventListener(window, 'load', winOnLoad, false);
-     |
-     |
      | function winOnLoad()
      | {
      |    if (
@@ -25,7 +22,6 @@ html
      |         KP_ATOMIX.init();
      |      }
      | }
-     |
      | window.onunload = function(){}
 
   body
