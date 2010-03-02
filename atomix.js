@@ -166,8 +166,7 @@ KP_ATOMIX = (function () {
             select.appendChild(option);
         }
         xAddEventListener(select, 'change', function (e) {
-            cancel(e);
-            setTimeout(function () {onLevelSelect(select, gLevel)}, 1);
+            setTimeout(function () {onLevelSelect(select, gLevel)}, 100);
         }, false);
         return ;
 

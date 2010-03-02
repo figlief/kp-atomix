@@ -1,5 +1,4 @@
 import sys, os
-import subprocess as sp
 
 PROJECT = 'atomix'
 XAG = 'xag'
@@ -15,7 +14,8 @@ def main():
 
     os.system('%s %s'%(XAG, PROJECT))
 
-    fp =open(jsLib, 'rb')
+
+    fp = open(jsLib, 'rb')
     txt = fp.read()
     fp.close()
 
@@ -23,17 +23,17 @@ def main():
     fp.write(txt.replace('\r', ''))
     fp.close()
 
-    txt += open(jsMain, 'rb').read()
+    if 0:
+        txt += open(jsMain, 'rb').read()
 
-    fp = open(tmp, 'wb')
-    fp.write(txt)
-    fp.close()
+        fp = open(tmp, 'wb')
+        fp.write(txt)
+        fp.close()
 
+        os.system('compress --type js levels/katomic.js > levels/katomic_min.js')
+        os.system('compress --type js %s > %s' % (tmp, jsMin))
 
-    os.system('compress --type js levels/katomic.js > levels/katomic_min.js')
-    os.system('compress --type js %s > %s' % (tmp, jsMin))
-
-    os.system('rm %s' % tmp)
+        os.system('rm %s' % tmp)
 
 
 if __name__ == "__main__":
