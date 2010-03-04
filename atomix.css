@@ -1,10 +1,12 @@
-html, body, .atom, .bond {
-  padding: 0px;
-  margin: 0px;
+html, body {
 }
 
-.atom, .bond {
+.atom, .bond, .arrow, .wall {
+
   position: absolute;
+
+  padding: 0px;
+  margin: 0px;
 
   top: 0px;
   left: 0px;
@@ -19,55 +21,8 @@ html, body, .atom, .bond {
   z-index: 99;
 }
 
-.carbon      {background-image:url(images/atom-c.png); }
-.hydrogen    {background-image:url(images/atom-h.png); }
-.oxygen      {background-image:url(images/atom-o.png); }
-.phosphorus  {background-image:url(images/atom-p.png); }
-.sulphur     {background-image:url(images/atom-s.png); }
-.fluorine    {background-image:url(images/atom-f.png); }
-.nitrogen    {background-image:url(images/atom-n.png); }
-.bromine     {background-image:url(images/atom-br.png); }
-.chlorine    {background-image:url(images/atom-cl.png); }
-.crystal     {background-image:url(images/atom-crystal.png); }
-
-.right-single  {background-image:url(images/bond-right.png); }
-.left-single   {background-image:url(images/bond-left.png); }
-.top-single    {background-image:url(images/bond-top.png); }
-.bottom-single {background-image:url(images/bond-bottom.png); }
-
-.top-right     {background-image:url(images/bond-top-right.png); }
-.top-left      {background-image:url(images/bond-top-left.png); }
-.bottom-right  {background-image:url(images/bond-bottom-right.png); }
-.bottom-left   {background-image:url(images/bond-bottom-left.png); }
-
-.right-double  {background-image:url(images/bond-right-double.png); }
-.left-double   {background-image:url(images/bond-left-double.png); }
-.top-double    {background-image:url(images/bond-top-double.png); }
-.bottom-double {background-image:url(images/bond-bottom-double.png); }
-
-.right-triple  {background-image:url(images/bond-right-triple.png); }
-.left-triple   {background-image:url(images/bond-left-triple.png); }
-.top-triple    {background-image:url(images/bond-top-triple.png); }
-.bottom-triple {background-image:url(images/bond-bottom-triple.png); }
-
-.arrow-up     {background-image:url(images/arrow-up.png); }
-.arrow-down   {background-image:url(images/arrow-down.png); }
-.arrow-left   {background-image:url(images/arrow-left.png); }
-.arrow-right  {background-image:url(images/arrow-right.png); }
-
-.connector-horizontal  {background-image:url(images/connector-horizontal.png); }
-.connector-vertical  {background-image:url(images/connector-vertical.png); }
-.connector-slash  {background-image:url(images/connector-slash.png); }
-.connector-backslash  {background-image:url(images/connector-backslash.png); }
-
 .center {text-align: center;}
 
-.arena-wall {
-  position: absolute;
-  width:41px;
-  height:39px;
-  background-image:url(images/wall.png);
-}
 
 #arena {
   position: relative;
@@ -120,6 +75,3 @@ html, body, .atom, .bond {
   text-align:center;
 
 }
-
-
-

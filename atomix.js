@@ -6,38 +6,38 @@ KP_ATOMIX = (function () {
         OFFSET_X = 20,
         OFFSET_Y = 0,
         item_kind = {
-            '1': 'hydrogen',
-            '2': 'carbon',
-            '3': 'oxygen',
-            '4': 'nitrogen',
-            '5': 'sulphur',
-            '6': 'fluorine',
-            '7': 'chlorine',
-            '8': 'bromine',
-            '9': 'phosphorus',
-            'o': 'crystal',
+            '1': 'atom-h', // hydrogen
+            '2': 'atom-c', // carbon
+            '3': 'atom-o', // oxygen
+            '4': 'atom-n', // nitrogen
+            '5': 'atom-s', // sulphur
+            '6': 'atom-f', // fluorine
+            '7': 'atom-cl', // chlorine
+            '8': 'atom-br', // bromine
+            '9': 'atom-p', // phosphorus
+            'o': 'atom-crystal',
             'A': 'connector-horizontal',
             'B': 'connector-slash',
             'C': 'connector-vertical',
             'D': 'connector-backslash'
         },
         bond_kind = {
-            'a': 'top-single',
-            'b': 'top-right',
-            'c': 'right-single',
-            'd': 'bottom-right',
-            'e': 'bottom-single',
-            'f': 'bottom-left',
-            'g': 'left-single',
-            'h': 'top-left',
-            'A': 'top-double',
-            'B': 'right-double',
-            'C': 'bottom-double',
-            'D': 'left-double',
-            'E': 'top-triple',
-            'F': 'right-triple',
-            'G': 'bottom-triple',
-            'H': 'left-triple'
+            'a': 'bond-top',
+            'b': 'bond-top-right',
+            'c': 'bond-right',
+            'd': 'bond-bottom-right',
+            'e': 'bond-bottom',
+            'f': 'bond-bottom-left',
+            'g': 'bond-left',
+            'h': 'bond-top-left',
+            'A': 'bond-top-double',
+            'B': 'bond-right-double',
+            'C': 'bond-bottom-double',
+            'D': 'bond-left-double',
+            'E': 'bond-top-triple',
+            'F': 'bond-right-triple',
+            'G': 'bond-bottom-triple',
+            'H': 'bond-left-triple'
         },
         gItems,
         gArrows,
@@ -117,9 +117,16 @@ KP_ATOMIX = (function () {
 
     function create_arrows() {
         foreach('left right up down'.split(' '), function (dir) {
-            var cell = new_cell(gArena, 'atom arrow-' + dir, 0, -1000);
-            gArrows.push(cell);
-            xAddEventListener(cell, 'click', function (evt) {
+            var arrow
+
+            arrow = document.createElement('img');
+            gArena.appendChild(arrow);
+            xAddClass(arrow, 'arrow');
+            xLeft(arrow, -1000);
+
+            gArrows.push(arrow);
+            arrow.src = format('images/arrow-\f.png', dir)
+            xAddEventListener(arrow, 'click', function (evt) {
                 onClickArrow(dir);
             }, false);
         });
@@ -141,16 +148,6 @@ KP_ATOMIX = (function () {
         show_arrows(oAtom);
     }
 
-    function new_cell(parent, cls, top, left) {
-        var element = document.createElement('div');
-        if (parent) {
-            parent.appendChild(element);
-        }
-        xAddClass(element, cls);
-        xTop(element, top);
-        xLeft(element, left);
-        return element;
-    }
 
     function create_selectors(parent) {
 
@@ -329,12 +326,28 @@ KP_ATOMIX = (function () {
         xAniLine(gCurrent.atom, xpos(col), ypos(row), data, 1, end_animation);
     }
 
-    function atom_factory(parent, a, row, col) {
 
-        var spec = gLevel.atoms[a],
+
+    function new_img(parent, cls, image, top, left) {
+        var element = document.createElement('img');
+        parent.appendChild(element);
+        xAddClass(element, cls);
+        element.src = 'images/' + image + '.png';
+        xTop(element, top);
+        xLeft(element, left);
+    }
+
+    function atom_factory(parent, atom_type, row, col) {
+
+        var spec = gLevel.atoms[atom_type],
             atom, oAtom, bonds, bond;
 
-        atom = new_cell(parent, 'atom', ypos(row), xpos(col));
+        atom = document.createElement('div');
+        parent.appendChild(atom);
+        xAddClass(atom, 'atom');
+        xTop(atom, ypos(row));
+        xLeft(atom, xpos(col));
+
         oAtom = {'row': row, 'col': col, 'atom': atom};
         if (parent === gArena) {
             gItems.push(oAtom);
@@ -343,11 +356,12 @@ KP_ATOMIX = (function () {
             }, false);
         }
 
-        new_cell(atom, item_kind[spec[0]] + " atom");
         bonds = spec[1];
         for (bond = 0; bond < bonds.length; bond += 1) {
-            new_cell(atom, 'bond ' + bond_kind[bonds.charAt(bond)], 0, 0);
+            new_img(atom, 'bond', bond_kind[bonds.charAt(bond)], 0, 0);
         }
+        new_img(atom, 'atom', item_kind[spec[0]], 0, 0);
+
         return atom;
     }
 
@@ -359,10 +373,10 @@ KP_ATOMIX = (function () {
         for (row = 0 ; row < gg.grid.length; row += 1) {
             item = gg.grid[row];
             for (col = 0; col < item.length; col += 1) {
-                switch (item.charAt(col)) {
 
+                switch (item.charAt(col)) {
                 case '#':
-                    new_cell(gArena, 'arena-wall', ypos(row), xpos(col));
+                    new_img(gArena, 'wall', 'wall', ypos(row), xpos(col));
                     break;
                 case '.':
                     break;
