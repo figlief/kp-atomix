@@ -119,13 +119,8 @@ KP_ATOMIX = (function () {
         foreach('left right up down'.split(' '), function (dir) {
             var arrow
 
-            arrow = document.createElement('img');
-            gArena.appendChild(arrow);
-            xAddClass(arrow, 'arrow');
-            xLeft(arrow, -1000);
-
+            arrow = new_img(gArena, 'arrow', 'arrow-' + dir, -1);
             gArrows.push(arrow);
-            arrow.src = format('images/arrow-\f.png', dir)
             xAddEventListener(arrow, 'click', function (evt) {
                 onClickArrow(dir);
             }, false);
@@ -335,6 +330,7 @@ KP_ATOMIX = (function () {
         element.src = 'images/' + image + '.png';
         xTop(element, top);
         xLeft(element, left);
+        return element;
     }
 
     function atom_factory(parent, atom_type, row, col) {
