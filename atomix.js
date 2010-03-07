@@ -3,8 +3,14 @@ KP_ATOMIX = (function () {
 
     var CELL_HEIGHT = 39,
         CELL_WIDTH = 41,
-        OFFSET_X = 20,
-        OFFSET_Y = 0,
+        OFFSET_X = 10,
+        OFFSET_Y = 10,
+
+        MOLECULE_CELL_HEIGHT = 24,
+        MOLECULE_CELL_WIDTH = 24,
+        MOLECULE_OFFSET_X = 10,
+        MOLECULE_OFFSET_Y = 10,
+
         item_kind = {
             '1': 'atom-h', // hydrogen
             '2': 'atom-c', // carbon
@@ -42,8 +48,8 @@ KP_ATOMIX = (function () {
         gItems,
         gArrows,
         gCurrent,
-        gArena,
-        gMolecule,
+        gA,
+        gM,
         gMoveFlag,
         gLevelSelect,
 
@@ -67,12 +73,13 @@ KP_ATOMIX = (function () {
             return (count < args.length) ? args[count] : '';
         });
     }
-    function xpos(col) {
-        return OFFSET_X + col * CELL_WIDTH;
+    function xBottom(e) {
+        return xTop(e) + xHeight(e);
     }
-    function ypos(row) {
-        return OFFSET_Y + row * CELL_HEIGHT;
+    function xRight(e) {
+        return xLeft(e) + xWidth(e);
     }
+
     function copy_grid(grid) {
         return grid.join('\n').split('\n');
     }
@@ -92,8 +99,7 @@ KP_ATOMIX = (function () {
 
     function show_arrow(arrow, row, col) {
         if (gg.grid[row].charAt(col) === '.') {
-            xTop(arrow, ypos(row));
-            xLeft(arrow, xpos(col));
+            xMoveTo(arrow, gA.xpos(col), gA.ypos(row));
         } else {
             xLeft(arrow, -1000);
         }
@@ -119,12 +125,13 @@ KP_ATOMIX = (function () {
         foreach('left right up down'.split(' '), function (dir) {
             var arrow
 
-            arrow = new_img(gArena, 'arrow', 'arrow-' + dir, -1);
+            arrow = gA.new_img('arrow', 'arrow-' + dir);
             gArrows.push(arrow);
             xAddEventListener(arrow, 'click', function (evt) {
                 onClickArrow(dir);
             }, false);
         });
+        hide_arrows();
     }
 
     function get_item_rowcol(row, col) {
@@ -318,47 +325,90 @@ KP_ATOMIX = (function () {
         gCurrent.col = col;
         data = 100 * Math.abs(cr - row + cc - col);
         gMoveFlag = true;
-        xAniLine(gCurrent.atom, xpos(col), ypos(row), data, 1, end_animation);
+        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1, end_animation);
     }
 
+    function GridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
 
+        var parent = xGetElementById(parentName)
 
-    function new_img(parent, cls, image, top, left) {
-        var element = document.createElement('img');
-        parent.appendChild(element);
-        xAddClass(element, cls);
-        element.src = 'images/' + image + '.png';
-        xTop(element, top);
-        xLeft(element, left);
-        return element;
-    }
+        function xpos(col) {
+            return xOffset + col * cellWidth;
+        };
 
-    function atom_factory(parent, atom_type, row, col) {
+        function ypos(row) {
+            return yOffset + row * cellHeight;
+        };
 
-        var spec = gLevel.atoms[atom_type],
-            atom, oAtom, bonds, bond;
-
-        atom = document.createElement('div');
-        parent.appendChild(atom);
-        xAddClass(atom, 'atom');
-        xTop(atom, ypos(row));
-        xLeft(atom, xpos(col));
-
-        oAtom = {'row': row, 'col': col, 'atom': atom};
-        if (parent === gArena) {
-            gItems.push(oAtom);
-            xAddEventListener(atom, 'click', function (e) {
-                onClickAtom(oAtom);
-            }, false);
+        function _new_img(p, cls, image, left, top) {
+            var img = document.createElement('img');
+            p.appendChild(img);
+            xAddClass(img, cls);
+            img.src = 'images/' + image + '.png';
+            xMoveTo(img, left, top);
+            xResizeTo(img, cellWidth, cellHeight);
+            return img;
         }
 
-        bonds = spec[1];
-        for (bond = 0; bond < bonds.length; bond += 1) {
-            new_img(atom, 'bond', bond_kind[bonds.charAt(bond)], 0, 0);
+        function new_img(cls, image, col, row) {
+            return _new_img(parent, cls, image,
+                xpos(col || 0), ypos(row || 0)
+            );
         }
-        new_img(atom, 'atom', item_kind[spec[0]], 0, 0);
 
-        return atom;
+        function atom_factory (atom_type, col, row) {
+
+            var spec = gLevel.atoms[atom_type],
+                atom, oAtom, bonds, bond;
+
+            atom = document.createElement('div');
+            parent.appendChild(atom);
+            xAddClass(atom, 'atom');
+
+            xMoveTo(atom, xpos(col), ypos(row));
+            xResizeTo(atom, cellWidth, cellHeight);
+
+            oAtom = {'row': row, 'col': col, 'atom': atom};
+            if (parentName === 'arena') {
+                gItems.push(oAtom);
+                xAddEventListener(atom, 'click', function (e) {
+                    onClickAtom(oAtom);
+                }, false);
+            }
+
+            bonds = spec[1];
+            for (bond = 0; bond < bonds.length; bond += 1) {
+                _new_img(atom, 'bond', bond_kind[bonds.charAt(bond)], 0, 0);
+            }
+            _new_img(atom, 'atom', item_kind[spec[0]], 0, 0);
+
+            return atom;
+        }
+
+        function set_container_size (col, row) {
+            xResizeTo(parent,
+                xpos(col) + 2 * xOffset,
+                ypos(row) + 2 * yOffset
+            );
+        }
+
+        function clear_container() {
+            parent.innerHTML = '&nbsp;';
+        }
+
+        return {
+            parent: parent,
+            xpos: xpos,
+            ypos: ypos,
+            xOffset: xOffset,
+            yOffset: yOffset,
+            cellWidth: cellWidth,
+            cellHeight: cellHeight,
+            atom_factory: atom_factory,
+            new_img: new_img,
+            set_container_size: set_container_size,
+            clear_container: clear_container
+        }
     }
 
     function draw_arena() {
@@ -372,36 +422,35 @@ KP_ATOMIX = (function () {
 
                 switch (item.charAt(col)) {
                 case '#':
-                    new_img(gArena, 'wall', 'wall', ypos(row), xpos(col));
+                    gA.new_img('wall', 'wall', col, row);
                     break;
                 case '.':
                     break;
                 default:
-                    atom_factory(gArena, item.charAt(col), row, col);
+                    gA.atom_factory(item.charAt(col), col, row);
                 }
             }
         }
-
-        xHeight(gArena, ypos(row));
-        xWidth(gArena, xpos(col) + OFFSET_X);
+        gA.set_container_size(col, row);
 
         mol = gLevel.molecule;
-
         for (row = 0 ; row < mol.length; row += 1) {
             item = mol[row];
             for (col = 0; col < item.length; col += 1) {
                 if (item.charAt(col) !== '.') {
-                    atom_factory(gMolecule, item.charAt(col), row, col);
+                    gM.atom_factory(item.charAt(col), col, row);
                 }
             }
         }
+        gM.set_container_size(col, row);
 
-        xMoveTo(gMolecule,
-            xLeft(gArena) + xWidth(gArena) + 40,
-            xTop('controls') + xHeight('controls') + 40
-        );
 
+        xMoveTo('molecule', xRight('arena'), xTop('arena'));
+
+        xMoveTo('move-controls', xLeft('arena'), xBottom('arena'));
         xWidth('move-controls', xWidth('arena'))
+
+        xTop('footer', xBottom('move-controls'))
 
         set_current(gItems[0]);
         create_arrows();
@@ -439,11 +488,17 @@ KP_ATOMIX = (function () {
         gItems = [];
         gArrows = [];
 
-        gArena = $('arena');
-        gArena.innerHTML = '&nbsp;';
+        gA = GridSpec('arena',
+            OFFSET_X, OFFSET_Y,
+            CELL_WIDTH, CELL_HEIGHT
+        );
+        gA.clear_container();
 
-        gMolecule = $('molecule');
-        gMolecule.innerHTML =  '&nbsp;';
+        gM = GridSpec('molecule',
+            MOLECULE_OFFSET_X, MOLECULE_OFFSET_Y,
+            MOLECULE_CELL_WIDTH, MOLECULE_CELL_HEIGHT
+        );
+        gM.clear_container();
 
         gLevel = gLevels[lvl];
         iLevel = lvl;
@@ -466,6 +521,7 @@ KP_ATOMIX = (function () {
         gLevels = KP_ATOMIX.levels['katomic'];
         setup_controls();
         create_selectors($('selectors'));
+        xEnableDrag('molecule');
         start_level(lvl);
         var dialog = new xModalDialog('success-dialog');
         xAddEventListener('success-form', 'submit', function(e){

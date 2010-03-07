@@ -1,5 +1,33 @@
-/*! Built from X 4.21 by XAG 1.0. 02Mar10 21:32 UT */
+/*! Built from X 4.21 by XAG 1.0. 07Mar10 16:49 UT */
 xLibrary={version:'4.21',license:'GNU LGPL',url:'http://cross-browser.com/'};
+// xEvent r11, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xEvent(evt) // object prototype
+{
+  var e = evt || window.event;
+  if (!e) return;
+  this.type = e.type;
+  this.target = e.target || e.srcElement;
+  this.relatedTarget = e.relatedTarget;
+  /*@cc_on if (e.type == 'mouseover') this.relatedTarget = e.fromElement;
+  else if (e.type == 'mouseout') this.relatedTarget = e.toElement; @*/
+  if (xDef(e.pageX)) { this.pageX = e.pageX; this.pageY = e.pageY; }
+  else if (xDef(e.clientX)) { this.pageX = e.clientX + xScrollLeft(); this.pageY = e.clientY + xScrollTop(); }
+  if (xDef(e.offsetX)) { this.offsetX = e.offsetX; this.offsetY = e.offsetY; }
+  else if (xDef(e.layerX)) { this.offsetX = e.layerX; this.offsetY = e.layerY; }
+  else { this.offsetX = this.pageX - xPageX(this.target); this.offsetY = this.pageY - xPageY(this.target); }
+  this.keyCode = e.keyCode || e.which || 0;
+  this.shiftKey = e.shiftKey; this.ctrlKey = e.ctrlKey; this.altKey = e.altKey;
+  if (typeof e.type == 'string') {
+    if (e.type.indexOf('click') != -1) {this.button = 0;}
+    else if (e.type.indexOf('mouse') != -1) {
+      this.button = e.button;
+      /*@cc_on if (e.button & 1) this.button = 0;
+      else if (e.button & 4) this.button = 1;
+      else if (e.button & 2) this.button = 2; @*/
+    }
+  }
+}
 // xModalDialog r2, Copyright 2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
 function xModalDialog(sDialogId) // Object Prototype
@@ -181,6 +209,62 @@ function xDocSize()
 //  alert('compatMode: ' + document.compatMode + '\n\ndocumentElement.scrollHeight: ' + esh + '\ndocumentElement.offsetHeight: ' + eoh + '\nbody.scrollHeight: ' + bsh + '\nbody.offsetHeight: ' + boh + '\n\ndocumentElement.scrollWidth: ' + esw + '\ndocumentElement.offsetWidth: ' + eow + '\nbody.scrollWidth: ' + bsw + '\nbody.offsetWidth: ' + bow);
   return {w:Math.max(esw,eow,bsw,bow),h:Math.max(esh,eoh,bsh,boh)};
 }
+// xEnableDrag r8, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xEnableDrag(id,fS,fD,fE)
+{
+  var mx = 0, my = 0, el = xGetElementById(id);
+  if (el) {
+    el.xDragEnabled = true;
+    xAddEventListener(el, 'mousedown', dragStart, false);
+  }
+  // Private Functions
+  function dragStart(e)
+  {
+    if (el.xDragEnabled) {
+      var ev = new xEvent(e);
+      xPreventDefault(e);
+      mx = ev.pageX;
+      my = ev.pageY;
+      xAddEventListener(document, 'mousemove', drag, false);
+      xAddEventListener(document, 'mouseup', dragEnd, false);
+      if (fS) {
+        fS(el, ev.pageX, ev.pageY, ev);
+      }
+    }
+  }
+  function drag(e)
+  {
+    var ev, dx, dy;
+    xPreventDefault(e);
+    ev = new xEvent(e);
+    dx = ev.pageX - mx;
+    dy = ev.pageY - my;
+    mx = ev.pageX;
+    my = ev.pageY;
+    if (fD) {
+      fD(el, dx, dy, ev);
+    }
+    else {
+      xMoveTo(el, xLeft(el) + dx, xTop(el) + dy);
+    }
+  }
+  function dragEnd(e)
+  {
+    var ev = new xEvent(e);
+    xPreventDefault(e);
+    xRemoveEventListener(document, 'mouseup', dragEnd, false);
+    xRemoveEventListener(document, 'mousemove', drag, false);
+    if (fE) {
+      fE(el, ev.pageX, ev.pageY, ev);
+    }
+    if (xEnableDrag.drop) {
+      xEnableDrag.drop(el, ev);
+    }
+  }
+}
+
+xEnableDrag.drops = []; // static property
 // xGetComputedStyle r7, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
 function xGetComputedStyle(e, p, i)
@@ -296,12 +380,60 @@ function xNum()
   for(var i=0; i<arguments.length; ++i){if(isNaN(arguments[i]) || typeof(arguments[i])!='number') return false;}
   return true;
 }
+// xOffset r1, Copyright 2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xOffset(c, p)
+{
+  var o = {x:0, y:0};
+  c = xGetElementById(c);
+  p = xGetElementById(p);
+  while (c && c != p) {
+    o.x += c.offsetLeft;
+    o.y += c.offsetTop;
+    c = c.offsetParent;
+  }
+  return o;
+}
+// xPageX r2, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xPageX(e)
+{
+  var x = 0;
+  e = xGetElementById(e);
+  while (e) {
+    if (xDef(e.offsetLeft)) x += e.offsetLeft;
+    e = xDef(e.offsetParent) ? e.offsetParent : null;
+  }
+  return x;
+}
+// xPageY r4, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xPageY(e)
+{
+  var y = 0;
+  e = xGetElementById(e);
+  while (e) {
+    if (xDef(e.offsetTop)) y += e.offsetTop;
+    e = xDef(e.offsetParent) ? e.offsetParent : null;
+  }
+  return y;
+}
 // xPreventDefault r1, Copyright 2004-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
 function xPreventDefault(e)
 {
   if (e && e.preventDefault) e.preventDefault();
   else if (window.event) window.event.returnValue = false;
+}
+// xRemoveEventListener r6, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xRemoveEventListener(e,eT,eL,cap)
+{
+  if(!(e=xGetElementById(e)))return;
+  eT=eT.toLowerCase();
+  if(e.removeEventListener)e.removeEventListener(eT,eL,cap||false);
+  else if(e.detachEvent)e.detachEvent('on'+eT,eL);
+  else e['on'+eT]=null;
 }
 // xResizeTo r2, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL

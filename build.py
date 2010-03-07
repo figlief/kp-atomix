@@ -23,7 +23,7 @@ def main():
     fp.write(txt.replace('\r', ''))
     fp.close()
 
-    if 0:
+    if 1:
         txt += open(jsMain, 'rb').read()
 
         fp = open(tmp, 'wb')

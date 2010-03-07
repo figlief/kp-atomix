@@ -24,13 +24,17 @@ html, body {
 .center {text-align: center;}
 
 
-#arena {
-  position: relative;
+#arena, #molecule {
+  position: absolute;
+  padding: 0px;
+  margin: 0px;
+    border: thick outset gray;
 }
 
 #molecule {
-  position: absolute;
+  border: thick outset gray;
 }
+
 
 #controls {
   padding: 10px;
@@ -38,10 +42,14 @@ html, body {
 }
 
 #move-controls {
-
+  position: absolute;
 }
 
-#footer { font-size: smaller; }
+#footer {
+  position: absolute;
+  font-size: smaller;
+  width: 99%;
+}
 
 /*  Modal Dialog */
 
