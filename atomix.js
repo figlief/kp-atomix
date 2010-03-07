@@ -522,7 +522,7 @@ KP_ATOMIX = (function () {
         setup_controls();
         create_selectors($('selectors'));
         xEnableDrag('molecule');
-        xEnableDrag('arena');
+        xEnableDrag('arena', cancel, cancel, cancel);
         start_level(lvl);
         var dialog = new xModalDialog('success-dialog');
         xAddEventListener('success-form', 'submit', function(e){
