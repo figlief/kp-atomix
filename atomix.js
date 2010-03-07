@@ -445,12 +445,12 @@ KP_ATOMIX = (function () {
         gM.set_container_size(col, row);
 
 
-        xMoveTo('molecule', xRight('arena'), xTop('arena'));
+        xMoveTo(gM.parent, xRight(gA.parent), xTop('main'));
+        xHeight('main', xHeight('arena') + xHeight('move-controls'));
 
-        xMoveTo('move-controls', xLeft('arena'), xBottom('arena'));
+        xTop('move-controls', xTop('main') + xHeight('main'));
         xWidth('move-controls', xWidth('arena'))
 
-        xTop('footer', xBottom('move-controls'))
 
         set_current(gItems[0]);
         create_arrows();
@@ -522,6 +522,7 @@ KP_ATOMIX = (function () {
         setup_controls();
         create_selectors($('selectors'));
         xEnableDrag('molecule');
+        xEnableDrag('arena');
         start_level(lvl);
         var dialog = new xModalDialog('success-dialog');
         xAddEventListener('success-form', 'submit', function(e){

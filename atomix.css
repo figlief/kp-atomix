@@ -23,8 +23,11 @@ html, body {
 
 .center {text-align: center;}
 
+#main {
+  position: relative;
+}
 
-#arena, #molecule {
+#arena {
   position: absolute;
   padding: 0px;
   margin: 0px;
@@ -32,6 +35,9 @@ html, body {
 }
 
 #molecule {
+  position: absolute;
+  padding: 0px;
+  margin: 0px;
   border: thick outset gray;
 }
 
@@ -42,11 +48,10 @@ html, body {
 }
 
 #move-controls {
-  position: absolute;
+  
 }
 
 #footer {
-  position: absolute;
   font-size: smaller;
   width: 99%;
 }

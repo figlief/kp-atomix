@@ -49,18 +49,19 @@ html
 
     > hr
 
-    #arena | &nbsp;
-    #molecule | &nbsp;
+    #main
+      #arena | &nbsp;
+      #molecule | &nbsp;
 
     #move-controls.center
 
-      a#history-undo href=# | Undo Move
+        a#history-undo href=# | Undo Move
 
-      &nbsp;&nbsp;&nbsp;
-      span#move-no | &nbsp;
+        &nbsp;&nbsp;&nbsp;
+        span#move-no | &nbsp;
 
-      &nbsp;&nbsp;&nbsp;
-      a#history-redo href=# | Redo Move
+        &nbsp;&nbsp;&nbsp;
+        a#history-redo href=# | Redo Move
 
 
     #success-dialog
