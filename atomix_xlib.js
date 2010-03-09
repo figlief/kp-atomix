@@ -1,4 +1,4 @@
-/*! Built from X 4.21 by XAG 1.0. 07Mar10 16:49 UT */
+/*! Built from X 4.21 by XAG 1.0. 09Mar10 14:22 UT */
 xLibrary={version:'4.21',license:'GNU LGPL',url:'http://cross-browser.com/'};
 // xEvent r11, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
@@ -77,22 +77,6 @@ xModalDialog.prototype.hide = function(dialogOnly)
 // Static Properties
 xModalDialog.grey = null;
 xModalDialog.instances = {};
-// xAddClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
-// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
-function xAddClass(e, c)
-{
-  if ((e=xGetElementById(e))!=null) {
-    var s = '';
-    if (e.className.length && e.className.charAt(e.className.length - 1) != ' ') {
-      s = ' ';
-    }
-    if (!xHasClass(e, c)) {
-      e.className += s + c;
-      return true;
-    }
-  }
-  return false;
-}
 // xAddEventListener r8, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
 function xAddEventListener(e,eT,eL,cap)
@@ -292,15 +276,6 @@ function xGetElementById(e)
     else e = null;
   }
   return e;
-}
-// xHasClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
-// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
-function xHasClass(e, c)
-{
-  e = xGetElementById(e);
-  if (!e || e.className=='') return false;
-  var re = new RegExp("(^|\\s)"+c+"(\\s|$)");
-  return re.test(e.className);
 }
 // xHeight r7, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL

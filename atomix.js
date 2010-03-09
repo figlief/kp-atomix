@@ -47,6 +47,7 @@ KP_ATOMIX = (function () {
         },
         gItems,
         gArrows,
+        sArrows = ['arrow-left', 'arrow-right', 'arrow-up', 'arrow-down'],
         gCurrent,
         gA,
         gM,
@@ -91,7 +92,6 @@ KP_ATOMIX = (function () {
         }, false);
     }
 
-
     function end_animation() {
         show_arrows();
         gMoveFlag = false;
@@ -122,16 +122,11 @@ KP_ATOMIX = (function () {
     }
 
     function create_arrows() {
-        foreach('left right up down'.split(' '), function (dir) {
-            var arrow
-
-            arrow = gA.new_img('arrow', 'arrow-' + dir);
-            gArrows.push(arrow);
-            xAddEventListener(arrow, 'click', function (evt) {
-                onClickArrow(dir);
-            }, false);
+        var arrows = '';
+        foreach(sArrows, function (dir) {
+            arrows += gA.new_img('arrow',  dir, -1, dir);
         });
-        hide_arrows();
+        return arrows;
     }
 
     function get_item_rowcol(row, col) {
@@ -150,7 +145,6 @@ KP_ATOMIX = (function () {
         show_arrows(oAtom);
     }
 
-
     function create_selectors(parent) {
 
         var i, name, form, select, option;
@@ -158,16 +152,18 @@ KP_ATOMIX = (function () {
         gLevelSelect = select = document.createElement('select');
         parent.appendChild(select);
 
-        for ( level = 0; level < gLevels.length; level += 1) {
+        for (level = 0; level < gLevels.length; level += 1) {
             name = format('Level \f: \f', level + 1, gLevels[level].name);
             option = document.createElement('option');
             option.text = name;
             select.appendChild(option);
         }
         xAddEventListener(select, 'change', function (e) {
-            setTimeout(function () {onLevelSelect(select, gLevel)}, 100);
+            setTimeout(function () {
+                onLevelSelect(select, gLevel);
+            }, 100);
         }, false);
-        return ;
+        return;
 
     }
 
@@ -200,7 +196,7 @@ KP_ATOMIX = (function () {
 
     function setup_controls() {
         var ctrls = "test-dialog next-level prev-level history-reset history-undo history-redo";
-        foreach(ctrls.split(' '), addClickLink )
+        foreach(ctrls.split(' '), addClickLink);
     }
 
     function onClickLink(cmd) {
@@ -211,6 +207,7 @@ KP_ATOMIX = (function () {
 
         case 'test-dialog':
             onCompleteLevel();
+            break;
 
         case 'next-level':
             l = gLevels.length - 1;
@@ -243,7 +240,7 @@ KP_ATOMIX = (function () {
             return;
 
         case 'history-redo' :
-            if (!gg.redo.length | gMoveFlag) {
+            if (!gg.redo.length || gMoveFlag) {
                 return;
             }
             m = gg.redo.pop();
@@ -261,10 +258,12 @@ KP_ATOMIX = (function () {
     }
 
     function onClickAtom(oAtom) {
+
         set_current(oAtom);
     }
 
     function onClickArrow(dir) {
+
         var row = gCurrent.row,
             col = gCurrent.col,
             cr = row,
@@ -272,24 +271,24 @@ KP_ATOMIX = (function () {
             grid = gg.grid,
             data = grid[row];
 
-        switch (dir) {
+        switch (dir.id) {
 
-        case 'left':
+        case 'arrow-left':
             while (data.charAt(col - 1) === '.') {
                 col -= 1;
             }
             break;
-        case 'right':
+        case 'arrow-right':
             while (data.charAt(col + 1) === '.') {
                 col += 1;
             }
             break;
-        case 'up':
+        case 'arrow-up':
             while (grid[row - 1].charAt(col) === '.') {
                 row -= 1;
             }
             break;
-        case 'down':
+        case 'arrow-down':
             while (grid[row + 1].charAt(col) === '.') {
                 row += 1;
             }
@@ -328,64 +327,68 @@ KP_ATOMIX = (function () {
         xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1, end_animation);
     }
 
-    function GridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
+    function gridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
 
-        var parent = xGetElementById(parentName)
+        var parent = xGetElementById(parentName),
+            sGrid = "";
+
+        atomCount = -1;
 
         function xpos(col) {
             return xOffset + col * cellWidth;
-        };
+        }
 
         function ypos(row) {
             return yOffset + row * cellHeight;
-        };
-
-        function _new_img(p, cls, image, left, top) {
-            var img = document.createElement('img');
-            p.appendChild(img);
-            xAddClass(img, cls);
-            img.src = 'images/' + image + '.png';
-            xMoveTo(img, left, top);
-            xResizeTo(img, cellWidth, cellHeight);
-            return img;
         }
 
         function new_img(cls, image, col, row) {
-            return _new_img(parent, cls, image,
-                xpos(col || 0), ypos(row || 0)
+
+            if (col < 0) {
+                id = row ? format(' id="\f"', row) : '';
+                col = 0;
+                row = 0;
+            } else {
+                col = xpos(col || 0);
+                row = ypos(row || 0);
+            }
+
+            return format(
+                '<img\f src="images/\f.png" class="\f" style="left:\fpx;top:\fpx;width:\fpx;height:\fpx;" />',
+                id, image, cls, col, row, cellWidth, cellHeight
             );
         }
 
-        function atom_factory (atom_type, col, row) {
+        function createAtomDiv(col, row) {
+            return format(
+                '<div id="atom-\f-\f" class="atom" style="left:\fpx;top:\fpx;width:\fpx;height:\fpx;">',
+                parentName, atomCount, xpos(col), ypos(row), cellWidth, cellHeight
+            );
+        }
+
+        function atom_factory(atom_type, col, row) {
 
             var spec = gLevel.atoms[atom_type],
-                atom, oAtom, bonds, bond;
+                atom, sAtom, oAtom, bonds, bond;
 
-            atom = document.createElement('div');
-            parent.appendChild(atom);
-            xAddClass(atom, 'atom');
-
-            xMoveTo(atom, xpos(col), ypos(row));
-            xResizeTo(atom, cellWidth, cellHeight);
-
-            oAtom = {'row': row, 'col': col, 'atom': atom};
-            if (parentName === 'arena') {
-                gItems.push(oAtom);
-                xAddEventListener(atom, 'click', function (e) {
-                    onClickAtom(oAtom);
-                }, false);
-            }
+            atomCount += 1;
+            sAtom = createAtomDiv(col, row);
 
             bonds = spec[1];
             for (bond = 0; bond < bonds.length; bond += 1) {
-                _new_img(atom, 'bond', bond_kind[bonds.charAt(bond)], 0, 0);
+                sAtom += new_img('bond', bond_kind[bonds.charAt(bond)], -1);
             }
-            _new_img(atom, 'atom', item_kind[spec[0]], 0, 0);
+            sAtom += new_img('atom', item_kind[spec[0]], -1);
 
-            return atom;
+            if (parentName === 'arena') {
+                oAtom = {'row': row, 'col': col};
+                gItems.push(oAtom);
+            }
+
+            return sAtom + '</div>';
         }
 
-        function set_container_size (col, row) {
+        function set_container_size(col, row) {
             xResizeTo(parent,
                 xpos(col) + 2 * xOffset,
                 ypos(row) + 2 * yOffset
@@ -408,13 +411,22 @@ KP_ATOMIX = (function () {
             new_img: new_img,
             set_container_size: set_container_size,
             clear_container: clear_container
-        }
+        };
     }
 
+    function addClick(e, target, data) {
+        xAddEventListener(e, 'click', function (evt) {
+            target(data);
+        }, false);
+    }
     function draw_arena() {
 
         var item, mol,
-            row, col;
+            row, col,
+            sArena,
+            sMolecule = '';
+
+        sArena = create_arrows();
 
         for (row = 0 ; row < gg.grid.length; row += 1) {
             item = gg.grid[row];
@@ -422,26 +434,40 @@ KP_ATOMIX = (function () {
 
                 switch (item.charAt(col)) {
                 case '#':
-                    gA.new_img('wall', 'wall', col, row);
+                    sArena += gA.new_img('wall', 'wall', col, row);
                     break;
                 case '.':
                     break;
                 default:
-                    gA.atom_factory(item.charAt(col), col, row);
+                    sArena += gA.atom_factory(item.charAt(col), col, row);
                 }
             }
         }
+        gA.parent.innerHTML = sArena;
         gA.set_container_size(col, row);
+
+        foreach(gItems, function (oAtom, i) {
+            oAtom.atom = $('atom-arena-' + i);
+            addClick(oAtom.atom, onClickAtom, oAtom);
+        });
+
+        gArrows = [];
+        foreach(sArrows, function (arrow) {
+            arrow = $(arrow);
+            gArrows.push(arrow);
+            addClick(arrow, onClickArrow, arrow);
+        });
 
         mol = gLevel.molecule;
         for (row = 0 ; row < mol.length; row += 1) {
             item = mol[row];
             for (col = 0; col < item.length; col += 1) {
                 if (item.charAt(col) !== '.') {
-                    gM.atom_factory(item.charAt(col), col, row);
+                    sMolecule += gM.atom_factory(item.charAt(col), col, row);
                 }
             }
         }
+        gM.parent.innerHTML = sMolecule;
         gM.set_container_size(col, row);
 
 
@@ -449,11 +475,10 @@ KP_ATOMIX = (function () {
         xHeight('main', xHeight('arena') + xHeight('move-controls'));
 
         xTop('move-controls', xTop('main') + xHeight('main'));
-        xWidth('move-controls', xWidth('arena'))
+        xWidth('move-controls', xWidth('arena'));
 
 
         set_current(gItems[0]);
-        create_arrows();
         show_arrows();
 
     }
@@ -488,13 +513,13 @@ KP_ATOMIX = (function () {
         gItems = [];
         gArrows = [];
 
-        gA = GridSpec('arena',
+        gA = gridSpec('arena',
             OFFSET_X, OFFSET_Y,
             CELL_WIDTH, CELL_HEIGHT
         );
         gA.clear_container();
 
-        gM = GridSpec('molecule',
+        gM = gridSpec('molecule',
             MOLECULE_OFFSET_X, MOLECULE_OFFSET_Y,
             MOLECULE_CELL_WIDTH, MOLECULE_CELL_HEIGHT
         );
@@ -525,7 +550,7 @@ KP_ATOMIX = (function () {
         xEnableDrag('arena', cancel, cancel, cancel);
         start_level(lvl);
         var dialog = new xModalDialog('success-dialog');
-        xAddEventListener('success-form', 'submit', function(e){
+        xAddEventListener('success-form', 'submit', function (e) {
             cancel(e);
             dialog.hide();
         });
