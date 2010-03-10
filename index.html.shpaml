@@ -33,7 +33,7 @@ html
           a#test-dialog href=# | Test Dialog
           &nbsp;&nbsp;&nbsp;
 
-        span#selectors | &nbsp;
+        div#selectors | &nbsp;
 
         > br
 

@@ -149,16 +149,18 @@ KP_ATOMIX = (function () {
 
         var i, name, form, select, option;
 
-        gLevelSelect = select = document.createElement('select');
-        parent.appendChild(select);
+        gLevelSelect = select = '<select id="level-select">';
 
         for (level = 0; level < gLevels.length; level += 1) {
-            name = format('Level \f: \f', level + 1, gLevels[level].name);
-            option = document.createElement('option');
-            option.text = name;
-            select.appendChild(option);
+            select += format(
+                '<option>Level \f: \f</option>',
+                level + 1,
+                gLevels[level].name);
         }
-        xAddEventListener(select, 'change', function (e) {
+        $('selectors').innerHTML = select + "</select>";
+        gLevelSelect = $('level-select');
+
+        xAddEventListener(gLevelSelect, 'change', function (e) {
             setTimeout(function () {
                 onLevelSelect(select, gLevel);
             }, 100);
@@ -304,6 +306,15 @@ KP_ATOMIX = (function () {
             move_current_atom(row, col);
             test_for_success();
         }
+    }
+
+    function resizeArena(x, y) {
+        foreach(
+            xGetElementsByClassName('wall', gArena, img),
+            function (wall) {
+                xResizeTo(wall, x, y);
+            }
+        );
     }
 
     function move_current_atom(row, col) {
