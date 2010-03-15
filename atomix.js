@@ -52,6 +52,7 @@ KP_ATOMIX = (function () {
         gA,
         gM,
         gMoveFlag,
+        gTestForSuccess,
         gLevelSelect,
 
         iLevel,
@@ -92,9 +93,14 @@ KP_ATOMIX = (function () {
         }, false);
     }
 
-    function end_animation() {
-        show_arrows();
+    function end_animation(testForSuccess) {
+
         gMoveFlag = false;
+        if (testForSuccess) {
+            test_for_success();
+        } else {
+            show_arrows();
+        }
     }
 
     function show_arrow(arrow, row, col) {
@@ -187,13 +193,22 @@ KP_ATOMIX = (function () {
         start_level(gLevelSelect.selectedIndex);
     }
 
-    function onCompleteLevel() {
-        $('success-message').innerHTML = format(
-            "You completed this level <br /> in <b>\f</b> moves.",
-            gg.history.length
-        );
+    function save_successful_move(save) {
+        if (save) {
+            alert('Sorry: Save is not yet implemented :(');
+        }
+        show_arrows();
+        // a successfull move will be saved via ajax
+    }
 
-        xModalDialog.instances['success-dialog'].show();
+    function onCompleteLevel() {
+        show_success_dialog(
+            format(
+                "You completed this level <br /> in <b>\f</b> moves.",
+                gg.history.length
+            ),
+            save_successful_move
+        );
     }
 
     function setup_controls() {
@@ -303,8 +318,7 @@ KP_ATOMIX = (function () {
         if (row !== gCurrent.row || col !== gCurrent.col) {
             gg.history.push(format('\f-\f-\f-\f', cr, cc, row, col));
             gg.redo = [];
-            move_current_atom(row, col);
-            test_for_success();
+            move_current_atom(row, col, true);
         }
     }
 
@@ -317,7 +331,7 @@ KP_ATOMIX = (function () {
         );
     }
 
-    function move_current_atom(row, col) {
+    function move_current_atom(row, col, testForSuccess) {
 
         var grid = gg.grid,
             cc = gCurrent.col,
@@ -335,7 +349,11 @@ KP_ATOMIX = (function () {
         gCurrent.col = col;
         data = 100 * Math.abs(cr - row + cc - col);
         gMoveFlag = true;
-        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1, end_animation);
+        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1,
+            function () {
+                end_animation(testForSuccess)
+            }
+        );
     }
 
     function gridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
@@ -516,6 +534,9 @@ KP_ATOMIX = (function () {
         if (grid.indexOf(molecule) !== -1) {
             onCompleteLevel();
         }
+        else {
+            show_arrows();
+        }
     }
 
     function start_level(lvl, reset) {
@@ -553,6 +574,26 @@ KP_ATOMIX = (function () {
 
     }
 
+    function dialog(sId) {
+        return xModalDialog.instances[sId];
+    }
+
+    function show_success_dialog(sMsgHtml, fnCallback)
+    {
+        var sId = 'success-dialog',
+            btnSave = $(sId + '-button-save'),
+            btnClose = $(sId + '-button-close');
+
+        if (btnSave && btnClose) {
+            $(sId + '-message').innerHTML = sMsgHtml;
+            btnSave.onclick = btnClose.onclick = function () {
+                fnCallback(this === btnSave);
+                dialog(sId).hide();
+            };
+            dialog(sId).show();
+        }
+    }
+
     function init(lvl) {
         gLevels = KP_ATOMIX.levels['katomic'];
         setup_controls();
@@ -560,11 +601,7 @@ KP_ATOMIX = (function () {
         xEnableDrag('molecule');
         xEnableDrag('arena', cancel, cancel, cancel);
         start_level(lvl);
-        var dialog = new xModalDialog('success-dialog');
-        xAddEventListener('success-form', 'submit', function (e) {
-            cancel(e);
-            dialog.hide();
-        });
+        new xModalDialog('success-dialog');
     }
 
     return {

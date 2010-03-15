@@ -1,4 +1,4 @@
-/*! Built from X 4.21 by XAG 1.0. 09Mar10 14:22 UT */
+/*! Built from X 4.21 by XAG 1.0. 14Mar10 08:33 UT */
 xLibrary={version:'4.21',license:'GNU LGPL',url:'http://cross-browser.com/'};
 // xEvent r11, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
@@ -276,6 +276,39 @@ function xGetElementById(e)
     else e = null;
   }
   return e;
+}
+// xGetElementsByClassName r6, Copyright 2002-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xGetElementsByClassName(c,p,t,f)
+{
+  var r = [], re, e, i;
+  re = new RegExp("(^|\\s)"+c+"(\\s|$)");
+//  var e = p.getElementsByTagName(t);
+  e = xGetElementsByTagName(t,p); // See xml comments.
+  for (i = 0; i < e.length; ++i) {
+    if (re.test(e[i].className)) {
+      r[r.length] = e[i];
+      if (f) f(e[i]);
+    }
+  }
+  return r;
+}
+// xGetElementsByTagName r5, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xGetElementsByTagName(t,p)
+{
+  var list = null;
+  t = t || '*';
+  p = xGetElementById(p) || document;
+  if (typeof p.getElementsByTagName != 'undefined') { // DOM1
+    list = p.getElementsByTagName(t);
+    if (t=='*' && (!list || !list.length)) list = p.all; // IE5 '*' bug
+  }
+  else { // IE4 object model
+    if (t=='*') list = p.all;
+    else if (p.all && p.all.tags) list = p.all.tags(t);
+  }
+  return list || [];
 }
 // xHeight r7, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
 // Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL

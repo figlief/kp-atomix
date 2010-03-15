@@ -7,6 +7,8 @@
     <script src='atomix.js'></script>
     <script src='levels/katomic.js'></script>
 
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
     <script>
@@ -71,12 +73,13 @@
 
       <h4>Well Done!</h4>
 
-      <form id="success-form">
+      <form id="success-dialog-form">
 
-          <p id="success-message">&nbsp;</p>
+          <p id="success-dialog-message">&nbsp;</p>
 
           <p class="buttons">
-            <input type="submit" value="Close" />
+            <input id="success-dialog-button-close" type="button" value="Close" />
+            <input id="success-dialog-button-save"  type="button" value="Save" />
           </p>
       </form>
     </div>

@@ -1,10 +1,15 @@
 """Convert katomic levels to kp-atomix format."""
 
-import os, re
+import os, sys, re, cPickle
+import sqlite3 as sqlite
 import json
 
+
 src = "/usr/share/kde4/apps/katomic/levels"
-dest = "/home/kp/hg/kp-atomix/levels/katomic.js"
+dest = "../levels/katomic"
+
+dest_js = dest + '.js'
+dest_sql = 'test.db'
 
 levels = []
 
@@ -22,21 +27,16 @@ for fn in  sorted([int(fn.split('_')[1]) for fn in os.listdir(src)]):
     text = fp.read()
     fp.close()
 
-    out = [
-      '{',
-      '  "id": "k%s",' % fn,
-      '  "name": "%s",' % reName.search(text).group(1),
-      '  "atoms": {'
+    level = {
+        "id": "k%s" % fn,
+        "name": "%s" % reName.search(text).group(1)
+    }
+
+    atoms = level['atoms']  = [
+        m.groups() for m in reAtoms.finditer(text)
     ]
-    a = out.append
 
-    a(',\n'.join(
-        ['    "%s": ["%s", "%s"]' % m.groups() for m in reAtoms.finditer(text)]
-    ))
-    a('  },')
-
-    a('  "arena" : [')
-    arena = []
+    arena =  []
     maxpre = 999
     maxpost = 999
     for m in reArena.finditer(text):
@@ -52,22 +52,73 @@ for fn in  sorted([int(fn.split('_')[1]) for fn in os.listdir(src)]):
     if maxpre:
         arena = [ s[maxpre:] for s in arena ]
 
-    arena = ['    "%s"'%s for s in arena]
+    level['arena'] = arena
 
-    a(',\n'.join(arena))
-    a('  ],')
+    mol = [ m.group(1) for m in reMole.finditer(text) ]
+    maxmol = max([len(m) for m in mol])
+    dots = '.' * maxmol
+    for i, s in enumerate(mol[:]):
+        mol[i] = (s + dots)[:maxmol]
 
-    a('  "molecule": [')
-    a(',\n'.join(
-        ['    "%s"'%m.group(1) for m in reMole.finditer(text) ]
-    ))
-    a('  ]')
+    level['molecule'] = mol
 
-    a('}')
+    levels.append(level)
 
-    levels.append('\n'.join(out))
+def toJS(levels):
 
-fp = open(dest, 'w')
+    outlevels = []
+    for level in  levels:
+
+        out = [
+          '{',
+          '  "id": "%s",' % level['id'],
+          '  "name": "%s",' % level['name'],
+          '  "atoms": {'
+        ]
+        a = out.append
+
+        a(',\n'.join(
+            ['    "%s": ["%s", "%s"]' % m  for m in level['atoms'] ]
+        ))
+        a('  },')
+
+        a('  "arena" : [')
+
+        arena = ['    "%s"'%s for s in level['arena']]
+
+        a(',\n'.join(arena))
+        a('  ],')
+
+        a('  "molecule": [')
+        a(',\n'.join(
+            ['    "%s"' % m for m in level['molecule'] ]
+        ))
+        a('  ]')
+
+        a('}')
+
+        outlevels.append('\n'.join(out))
+
+    return outlevels
+
+def toSQL(levels):
+
+    if os.path.exists(dest_sql):
+        os.system('rm %s' % dest_sql)
+
+    conn = sqlite.connect(dest_sql)
+    cur = conn.execute('create table levels (levelset text, id text, name text, data text)')
+
+    for level in  levels:
+        cur.execute("""
+            INSERT INTO levels (levelset, id, name, data)
+            VALUES ( "katomic", ?, ?, ? )
+            """, ( level['id'], level['name'], json.dumps(level) )
+        )
+    conn.commit()
+    cur.close()
+
+fp = open(dest_js, 'w')
 
 fp.write("""/*
  * The contents of this file is derived from the KDE project "KAtomic"
@@ -96,5 +147,7 @@ KP_ATOMIX.levels["katomic"] = [
 
 """)
 
-fp.write(',\n'.join(levels) + ']')
+fp.write(',\n'.join(toJS(levels)) + ']')
 fp.close()
+
+toSQL(levels)

@@ -7,6 +7,8 @@ html
     <script src='atomix.js'></script>
     <script src='levels/katomic.js'></script>
 
+    > meta http-equiv="Content-Type" content="text/html;charset=utf-8"
+
     > link href=atomix.css rel=stylesheet type=text/css
 
     script
@@ -68,12 +70,13 @@ html
 
       h4 | Well Done!
 
-      form#success-form
+      form#success-dialog-form
 
-          p#success-message | &nbsp;
+          p#success-dialog-message | &nbsp;
 
           p.buttons
-            > input type=submit value=Close
+            > input id=success-dialog-button-close type=button value=Close
+            > input id=success-dialog-button-save  type=button value=Save
 
 
     #footer.center
