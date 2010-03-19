@@ -76,13 +76,22 @@
       <form id="success-dialog-form">
 
           <p id="success-dialog-message">&nbsp;</p>
+          <p>
+             <b>User Name</b>
+             <br />
+             <input type="input" value='Anonymous' class="center" id="success-dialog-user" />
+          </p>
 
           <p class="buttons">
             <input id="success-dialog-button-close" type="button" value="Close" />
             <input id="success-dialog-button-save"  type="button" value="Save" />
           </p>
+
+          <input id="success-dialog-moves" type="hidden" value='' />
+          <input id="success-dialog-user" type="hidden" value='' />
       </form>
     </div>
+
 
 
     <div class="center" id="footer">

@@ -52,8 +52,9 @@ KP_ATOMIX = (function () {
         gA,
         gM,
         gMoveFlag,
-        gTestForSuccess,
         gLevelSelect,
+        gUserName = 'anonymous',
+        gAjaxRequest,
 
         iLevel,
         gLevel,
@@ -155,7 +156,7 @@ KP_ATOMIX = (function () {
 
         var i, name, form, select, option;
 
-        gLevelSelect = select = '<select id="level-select">';
+        select = '<select id="level-select">';
 
         for (level = 0; level < gLevels.length; level += 1) {
             select += format(
@@ -194,11 +195,35 @@ KP_ATOMIX = (function () {
     }
 
     function save_successful_move(save) {
-        if (save) {
-            alert('Sorry: Save is not yet implemented :(');
-        }
-        show_arrows();
         // a successfull move will be saved via ajax
+        if (save) {
+            var sData = [], response;
+            foreach([
+                    ['user', $('success-dialog-user').value],
+                    ['levelSet', gLevelSet],
+                    ['level', gLevel.id],
+                    ['solution', gg.history]
+                ],
+                function (entry) {
+                    sData.push(entry[0] + '=' + encodeURIComponent(entry[1]));
+                }
+            );
+            sData = sData.join('&');
+
+            response = gAjaxRequest.send(
+                'POST',
+                '/cgi-bin/atomix-save-move.py',
+                sData,
+                60000, // uTimeout milliseconds
+                'sRndVar', // sData +  '&' + sRndVar + '=' + a_random_number.
+                false, // bXml
+                null, // a user data object
+                function (req, status, data) {
+                    var text = req.responseText;
+                    alert(text);
+                }
+            );
+        }
     }
 
     function onCompleteLevel() {
@@ -351,7 +376,7 @@ KP_ATOMIX = (function () {
         gMoveFlag = true;
         xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1,
             function () {
-                end_animation(testForSuccess)
+                end_animation(testForSuccess);
             }
         );
     }
@@ -595,13 +620,16 @@ KP_ATOMIX = (function () {
     }
 
     function init(lvl) {
-        gLevels = KP_ATOMIX.levels['katomic'];
+        gLevelSet = 'katomic';
+        gLevels = KP_ATOMIX.levels[gLevelSet];
         setup_controls();
         create_selectors($('selectors'));
         xEnableDrag('molecule');
         xEnableDrag('arena', cancel, cancel, cancel);
         start_level(lvl);
-        new xModalDialog('success-dialog');
+        (new xModalDialog('success-dialog'));
+        gAjaxRequest = new xHttpRequest();
+        $('success-dialog-user').value = gUserName;
     }
 
     return {

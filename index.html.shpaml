@@ -73,10 +73,18 @@ html
       form#success-dialog-form
 
           p#success-dialog-message | &nbsp;
+          p
+             b | User Name
+             > br
+             > input#success-dialog-user.center type=input value='Anonymous'
 
           p.buttons
             > input id=success-dialog-button-close type=button value=Close
             > input id=success-dialog-button-save  type=button value=Save
+
+          > input id=success-dialog-moves type=hidden value=''
+          > input id=success-dialog-user type=hidden value=''
+
 
 
     #footer.center
