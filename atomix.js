@@ -83,6 +83,31 @@ KP_ATOMIX = (function () {
         return xLeft(e) + xWidth(e);
     }
 
+    function parse_location_search() {
+        var items = location.search,
+            result = {};
+            result.qKeys = [];
+        if (!items.length) {
+            return result;
+        }
+        foreach(items.substring(1).split('&'), function(item) {
+            var value = item.split('=', 2),
+                name = decodeURIComponent(value[0]);
+            if (name == 'qKeys') return;
+            if (value.length === 2) {
+                value = decodeURIComponent(value[1]);
+            } else {
+                value = true;
+            }
+            if (!(name in result)) {
+                result[name] = [];
+                result.qKeys.push(name);
+            }
+            result[name].push(value);
+        });
+        return result;
+    }
+
     function copy_grid(grid) {
         return grid.join('\n').split('\n');
     }
@@ -152,28 +177,28 @@ KP_ATOMIX = (function () {
         show_arrows(oAtom);
     }
 
-    function create_selectors(parent) {
+    function create_selectors(lvl) {
 
-        var i, name, form, select, option;
+        var i, level, name, form, select, selected;
 
         select = '<select id="level-select">';
 
         for (level = 0; level < gLevels.length; level += 1) {
+            selected = (lvl === level) ? ' selected="selected"' : ''
             select += format(
-                '<option>Level \f: \f</option>',
+                '<option\f>Level \f: \f</option>',
+                selected,
                 level + 1,
-                gLevels[level].name);
+                gLevels[level].name
+            );
         }
         $('selectors').innerHTML = select + "</select>";
         gLevelSelect = $('level-select');
 
-        xAddEventListener(gLevelSelect, 'change', function (e) {
-            setTimeout(function () {
-                onLevelSelect(select, gLevel);
-            }, 100);
+        xAddEventListener(gLevelSelect, 'change', function () {
+            setTimeout(onLevelSelect, 100);
         }, false);
         return;
-
     }
 
     function cancel(e) {
@@ -619,14 +644,46 @@ KP_ATOMIX = (function () {
         }
     }
 
+    function parse_query() {
+
+        var query = parse_location_search(),
+            level,
+            s;
+
+        if (1 && query.qKeys.length) {
+            s = [];
+            foreach(query.qKeys, function(key) {
+                s.push(format('\f: \f', key, query[key]));
+            });
+            alert('' + s.join('\n'));
+        }
+        if ('level' in query && /^\d+/.test(query.level)) {
+            query.level = parseInt(query.level, 10);
+        }
+        else {
+            query.level = 0;
+        }
+        return query;
+    }
+
     function init(lvl) {
+
+        var query = parse_query();
+
         gLevelSet = 'katomic';
         gLevels = KP_ATOMIX.levels[gLevelSet];
+
+        lvl = query.level ? query.level - 1 : (lvl || 0)
+        lvl = (lvl < gLevels.length) ? lvl : gLevels.length - 1
+
         setup_controls();
-        create_selectors($('selectors'));
+        create_selectors(lvl);
+
         xEnableDrag('molecule');
         xEnableDrag('arena', cancel, cancel, cancel);
+
         start_level(lvl);
+
         (new xModalDialog('success-dialog'));
         gAjaxRequest = new xHttpRequest();
         $('success-dialog-user').value = gUserName;
