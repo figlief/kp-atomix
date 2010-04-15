@@ -11,6 +11,11 @@ KP_ATOMIX = (function () {
         MOLECULE_OFFSET_X = 10,
         MOLECULE_OFFSET_Y = 10,
 
+        RIGHT = 0,
+        LEFT = 1,
+        UP = 2,
+        DOWN = 3,
+
         item_kind = {
             '1': 'atom-h', // hydrogen
             '2': 'atom-c', // carbon
@@ -45,10 +50,12 @@ KP_ATOMIX = (function () {
             'G': 'bond-bottom-triple',
             'H': 'bond-left-triple'
         },
+        moveEncoder = 'abcdefghijklmnopqrstuvwxyz'.split(''),
+        moveDecoder = {},
         gItems,
         gArrows,
         sArrows = ['arrow-left', 'arrow-right', 'arrow-up', 'arrow-down'],
-        gCurrent,
+        gCurrent, // {row:  , col:  }
         gA,
         gM,
         gMoveFlag,
@@ -56,9 +63,12 @@ KP_ATOMIX = (function () {
         gUserName = 'anonymous',
         gAjaxRequest,
 
-        iLevel,
-        gLevel,
-        gLevels,
+        iLevel,     // int index
+        nameLevelSet,  // str eg 'katomic'
+
+        gLevelSets, // dict KP_ATOMIX.levelSets
+        gLevels,  // list KP_ATOMIX.levelSets[nameLevelSet].levels
+        gLevel,   // dict KP_ATOMIX.levels[nameLevelSet].levels[iLevel]
 
         gg,
         //
@@ -67,6 +77,13 @@ KP_ATOMIX = (function () {
     function foreach(c, f) {
         for (var i = 0; i < c.length; i += 1) {
             f(c[i], i, c);
+        }
+    }
+    function forkey(c, f) {
+        for (var k in c) {
+            if (c.hasOwnProperty(k)) {
+                f(c[k], k, c);
+            }
         }
     }
     function format(s) {
@@ -84,26 +101,23 @@ KP_ATOMIX = (function () {
     }
 
     function parse_location_search() {
-        var items = location.search,
-            result = {};
-            result.qKeys = [];
-        if (!items.length) {
+        var items = location.search
+            , result = {}
+        ;
+
+        if (!(items.length)) {
             return result;
         }
-        foreach(items.substring(1).split('&'), function(item) {
-            var value = item.split('=', 2),
-                name = decodeURIComponent(value[0]);
-            if (name == 'qKeys') return;
+        foreach(items.substring(1).split('&'), function (item) {
+            var value = item.split('=', 2)
+                , name = decodeURIComponent(value[0])
+            ;
             if (value.length === 2) {
                 value = decodeURIComponent(value[1]);
             } else {
-                value = true;
+                value = '';
             }
-            if (!(name in result)) {
-                result[name] = [];
-                result.qKeys.push(name);
-            }
-            result[name].push(value);
+            result[name] = value;
         });
         return result;
     }
@@ -179,12 +193,12 @@ KP_ATOMIX = (function () {
 
     function create_selectors(lvl) {
 
-        var i, level, name, form, select, selected;
+        var level, select, selected;
 
         select = '<select id="level-select">';
 
         for (level = 0; level < gLevels.length; level += 1) {
-            selected = (lvl === level) ? ' selected="selected"' : ''
+            selected = (lvl === level) ? ' selected="selected"' : '';
             select += format(
                 '<option\f>Level \f: \f</option>',
                 selected,
@@ -206,41 +220,171 @@ KP_ATOMIX = (function () {
         xPreventDefault(e);
     }
 
-    function decode_move(m) {
-        m = m.split('-');
-        m[0] = parseInt(m[0], 10);
-        m[1] = parseInt(m[1], 10);
-        m[2] = parseInt(m[2], 10);
-        m[3] = parseInt(m[3], 10);
-        return m;
-    }
-
     function onLevelSelect() {
         start_level(gLevelSelect.selectedIndex);
     }
 
-    function save_successful_move(save) {
-        // a successfull move will be saved via ajax
-        if (save) {
-            var sData = [], response;
-            foreach([
-                    ['user', $('success-dialog-user').value],
-                    ['levelSet', gLevelSet],
-                    ['level', gLevel.id],
-                    ['solution', gg.history]
-                ],
-                function (entry) {
-                    sData.push(entry[0] + '=' + encodeURIComponent(entry[1]));
+    function encode_history(history) {
+        var i, m, e, s = '';
+        e = moveEncoder;
+        for (i = 0; i < history.length; i += 1) {
+            m = history[i];
+            s = s + e[m[0]] + e[m[1]] + e[m[2]] + e[m[3]];
+        }
+        return s;
+    }
+    function decode_history(s) {
+        var i, d, history = [];
+        d = moveDecoder;
+        for (i = 0; i < s.length;) {
+            history.push([d[s[i++]], d[s[i++]], d[s[i++]], d[s[i++]]]);
+        }
+        return history;
+    }
+
+    function create_querry_string() {
+        var sData = []
+            , enc = encodeURIComponent
+            , user
+        ;
+        function add(key, data) {
+            if (data.length) {
+                sData.push(enc(key) + '=' + enc(data));
+            }
+        }
+        user = $('success-dialog-user').value;
+        user = (user.toLowerCase().indexOf('anon') === 0) ? '' : user;
+
+        add('user', user);
+        add('levelSet', nameLevelSet);
+        add('level', '' + gLevel.id);
+        add('history', encode_history(gg.history));
+        add('undo', encode_history(gg.redo));
+
+        return sData.join('&');
+    }
+
+    function update_bookmark_link() {
+
+        var bm = $('bookmark-link')
+            , href
+        ;
+        href = location.protocol + '//' + location.host + location.pathname;
+        href += '?' + create_querry_string();
+        //alert(href + '\n' + bm);
+        bm.href = href;
+    }
+
+    function create_move_decoder(i) {
+        foreach('abcdefghijklmnopqrstuvwxyz'.split(''), function (s) {
+            moveDecoder[s] = i;
+            i += 1;
+        });
+    }
+    create_move_decoder(0);
+
+    // Modify a grid to reflect a sequence of moves.
+    // Throws an Error if the move sequence is invalid.
+    // Returns the modified grid otherwise.
+    function replay_moves(moveList, grid) {
+
+        var endCol
+            , endRow
+            , startCol
+            , startRow
+            , row
+            , col
+            , data
+            , atom
+            , move
+            , moveIdx
+        ;
+
+        for (moveIdx = 0; moveIdx < moveList.length; moveIdx += 1) {
+
+            move = moveList[moveIdx];
+            startRow = row = move[0];
+            startCol = col = move[1];
+            endRow = move[2];
+            endCol = move[3];
+
+            atom = grid[startRow][startCol];
+            if (atom ===  '.' || atom === '#') {
+                throw new Error('not an atom');
+            }
+
+            data = grid[row];
+
+            if (startRow === endRow) {
+                if (startCol === endCol) {
+                    throw new Error('not moved!');
                 }
-            );
-            sData = sData.join('&');
+                dir = RIGHT;
+                if (startCol > endCol) {
+                    dir = LEFT;
+                }
+            } else {
+                if (startCol !== endCol) {
+                    throw new Error('diagonal moves illegal!');
+                }
+                dir = DOWN;
+                if (startRow > endRow) {
+                    dir = UP;
+                }
+            }
+
+            switch (dir) {
+
+            case LEFT:
+                while (data[col - 1] === '.') {
+                    col -= 1;
+                }
+                break;
+            case RIGHT:
+                while (data[col + 1] === '.') {
+                    col += 1;
+                }
+                break;
+            case UP:
+                while (grid[row - 1][col] === '.') {
+                    row -= 1;
+                }
+                break;
+            case DOWN:
+                while (grid[row + 1][col] === '.') {
+                    row += 1;
+                }
+                break;
+
+            default:
+                break;
+            }
+
+            if (row !== endRow || col !== endCol) {
+                throw new Error('end points don\'t match');
+            }
+            move_in_grid(grid, startRow, startCol, row, col);
+        }
+        return grid;
+    }
+
+    function isSolution(testGrid) {
+        var grid = testGrid.join('').replace(/#/g, '.');
+        return (grid.indexOf(gg.molecule) !== -1);
+    }
+
+    function save_successful_move(save) {
+        // a successful move will be saved via ajax
+        if (save) {
+            var sData, response;
+            sData = create_querry_string();
 
             response = gAjaxRequest.send(
-                'POST',
-                '/cgi-bin/atomix-save-move.py',
+                'GET',
+                '/node/save-move',
                 sData,
                 60000, // uTimeout milliseconds
-                'sRndVar', // sData +  '&' + sRndVar + '=' + a_random_number.
+                '', // sData +  '&' + sRndVar + '=' + a_random_number.
                 false, // bXml
                 null, // a user data object
                 function (req, status, data) {
@@ -272,10 +416,6 @@ KP_ATOMIX = (function () {
 
         switch (cmd) {
 
-        case 'test-dialog':
-            onCompleteLevel();
-            break;
-
         case 'next-level':
             l = gLevels.length - 1;
             if (iLevel < l) {
@@ -301,7 +441,7 @@ KP_ATOMIX = (function () {
             }
             m = gg.history.pop();
             gg.redo.push(m);
-            m = decode_move(m);
+            //m = decode_move(m);
             gCurrent = get_item_rowcol(m[2], m[3]);
             move_current_atom(m[0], m[1]);
             return;
@@ -312,7 +452,7 @@ KP_ATOMIX = (function () {
             }
             m = gg.redo.pop();
             gg.history.push(m);
-            m = decode_move(m);
+            //m = decode_move(m);
             gCurrent = get_item_rowcol(m[0], m[1]);
             move_current_atom(m[2], m[3]);
             return;
@@ -366,9 +506,10 @@ KP_ATOMIX = (function () {
         }
 
         if (row !== gCurrent.row || col !== gCurrent.col) {
-            gg.history.push(format('\f-\f-\f-\f', cr, cc, row, col));
+            gg.history.push([cr, cc, row, col]);
             gg.redo = [];
             move_current_atom(row, col, true);
+            update_bookmark_link();
         }
     }
 
@@ -381,25 +522,30 @@ KP_ATOMIX = (function () {
         );
     }
 
+    function move_in_grid(grid, sr, sc, er, ec) {
+        var atom = grid[sr].charAt(sc);
+        grid[sr] = grid[sr].slice(0, sc) + '.' + grid[sr].slice(sc + 1);
+        grid[er] = grid[er].slice(0, ec) + atom + grid[er].slice(ec + 1);
+    }
+
     function move_current_atom(row, col, testForSuccess) {
 
-        var grid = gg.grid,
-            cc = gCurrent.col,
-            cr = gCurrent.row,
-            //
-            data;
+        var grid = gg.grid
+            , startCol = gCurrent.col
+            , startRow = gCurrent.row
+            , aTime //animation time
+        ;
 
         hide_arrows();
         show_level_data();
 
-        data = grid[cr].charAt(cc);
-        grid[cr] = grid[cr].slice(0, cc) + '.' + grid[cr].slice(cc + 1);
-        grid[row] = grid[row].slice(0, col) + data + grid[row].slice(col + 1);
+        move_in_grid(grid, startRow, startCol, row, col);
         gCurrent.row = row;
         gCurrent.col = col;
-        data = 100 * Math.abs(cr - row + cc - col);
+
+        aTime = 100 * Math.abs(startRow - row + startCol - col);
         gMoveFlag = true;
-        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), data, 1,
+        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), aTime, 1,
             function () {
                 end_animation(testForSuccess);
             }
@@ -409,9 +555,7 @@ KP_ATOMIX = (function () {
     function gridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
 
         var parent = xGetElementById(parentName),
-            sGrid = "";
-
-        atomCount = -1;
+            atomCount = -1;
 
         function xpos(col) {
             return xOffset + col * cellWidth;
@@ -423,11 +567,14 @@ KP_ATOMIX = (function () {
 
         function new_img(cls, image, col, row) {
 
+            var id;
+
             if (col < 0) {
                 id = row ? format(' id="\f"', row) : '';
                 col = 0;
                 row = 0;
             } else {
+                id = '';
                 col = xpos(col || 0);
                 row = ypos(row || 0);
             }
@@ -448,7 +595,7 @@ KP_ATOMIX = (function () {
         function atom_factory(atom_type, col, row) {
 
             var spec = gLevel.atoms[atom_type],
-                atom, sAtom, oAtom, bonds, bond;
+                sAtom, oAtom, bonds, bond;
 
             atomCount += 1;
             sAtom = createAtomDiv(col, row);
@@ -572,16 +719,15 @@ KP_ATOMIX = (function () {
     function reset_level(lvl) {
         gLevel.gameData = gg = {};
         gg.grid = copy_grid(gLevel.arena);
+        gg.molecule = gLevel.molecule.join(
+            gg.grid[0].replace(/./g, '.').substring(gLevel.molecule[0].length)
+        );
         gg.history = [];
         gg.redo = [];
     }
 
     function test_for_success() {
-        var grid = gg.grid.join('').replace(/#/g, '.'),
-            molecule = gLevel.molecule.join(
-                gg.grid[0].replace(/./g, '.').substring(gLevel.molecule[0].length)
-            );
-        if (grid.indexOf(molecule) !== -1) {
+        if (isSolution(gg.grid)) {
             onCompleteLevel();
         }
         else {
@@ -621,6 +767,7 @@ KP_ATOMIX = (function () {
 
         draw_arena();
         show_level_data();
+        update_bookmark_link();
 
     }
 
@@ -646,43 +793,68 @@ KP_ATOMIX = (function () {
 
     function parse_query() {
 
-        var query = parse_location_search(),
-            level,
-            s;
+        var query = parse_location_search()
+            , level
+            , s
+        ;
 
-        if (1 && query.qKeys.length) {
+        if (0) {
             s = [];
-            foreach(query.qKeys, function(key) {
-                s.push(format('\f: \f', key, query[key]));
+            forkey(query, function (v, k) {
+                s.push(format('\f: \f', k, v));
             });
-            alert('' + s.join('\n'));
+            if (s.length) {
+                alert('' + s.join('\n'));
+            }
         }
-        if ('level' in query && /^\d+/.test(query.level)) {
-            query.level = parseInt(query.level, 10);
+
+        if (!(query.hasOwnProperty('levelSet') && gLevelSets.hasOwnProperty(query.levelSet))) {
+            query.levelSet = 'katomic';
         }
-        else {
-            query.level = 0;
+
+        level = query.level;
+        //alert('level: ' +  query.levelSet + ', ' + gLevelSets[query.levelSet].levels.length)
+        query.level = 0;
+        if (level && /^\d+$/.test(level)) {
+            level = parseInt(level, 10) - 1;
+            if (level < gLevelSets[query.levelSet].levels.length) {
+                query.level = level;
+            }
         }
         return query;
     }
 
     function init(lvl) {
 
+        gLevelSets = KP_ATOMIX.levelSets;
+
         var query = parse_query();
 
-        gLevelSet = 'katomic';
-        gLevels = KP_ATOMIX.levels[gLevelSet];
+        nameLevelSet = query.levelSet;
+        gLevels = gLevelSets[nameLevelSet].levels;
 
-        lvl = query.level ? query.level - 1 : (lvl || 0)
-        lvl = (lvl < gLevels.length) ? lvl : gLevels.length - 1
+        iLevel = query.level;
+        iLevel = (iLevel < gLevels.length) ? iLevel : gLevels.length - 1;
+        gLevel = gLevels[iLevel]
 
         setup_controls();
-        create_selectors(lvl);
+        create_selectors(iLevel);
 
         xEnableDrag('molecule');
         xEnableDrag('arena', cancel, cancel, cancel);
 
-        start_level(lvl);
+        reset_level(iLevel);
+        if (query.history) {
+            query.history = decode_history(query.history);
+            try {
+                replay_moves(query.history, gg.grid);
+                gg.history = query.history;
+            }
+            catch (e) {
+                alert('Invalid History: ' + e);
+            }
+        }
+        start_level(iLevel);
 
         (new xModalDialog('success-dialog'));
         gAjaxRequest = new xHttpRequest();
@@ -691,6 +863,6 @@ KP_ATOMIX = (function () {
 
     return {
         init: init,
-        levels: {}
+        levelSets: {}
     };
 }());

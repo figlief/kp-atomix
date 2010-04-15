@@ -11,18 +11,15 @@
 
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
+    <link rel="openid.server" href="http://www.myopenid.com/server" />
+    <link rel="openid.delegate" href="http://krumpet.myopenid.com/" />
+
     <script>
 
      xAddEventListener(window, 'load', winOnLoad, false);
      function winOnLoad()
      {
-        if (
-           document.getElementById &&
-           document.createElement &&
-           document.body.appendChild
-        ) {
-             KP_ATOMIX.init();
-          }
+        KP_ATOMIX.init();
      }
      window.onunload = function(){}
     </script>
@@ -45,6 +42,9 @@
 
         &nbsp;&nbsp;&nbsp;
         <a href="#" id="history-reset">Reset Level</a>
+
+        &nbsp;&nbsp;&nbsp;
+        <a href="#" id="bookmark-link">Save Level</a>
 
         <br />
       </div>
@@ -106,10 +106,15 @@
       </a>
 
       <br />
+      Hosted by
+      <a href="http://hcoop.net/">
+          HCOOP
+      </a>
+      &nbsp;&nbsp;&nbsp;
       Inspired by
       <a href="http://cross-browser.com/">
           Cross-Browser.com
       </a>
     </div>
-  </body>
+    </body>
 </html>
