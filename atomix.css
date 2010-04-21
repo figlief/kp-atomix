@@ -97,6 +97,10 @@ html, body {
 
 }
 
+table {
+  margin: auto;
+}
+
 td, th {
   border: 1px #ccc solid;
   padding-left: 2em;
