@@ -1,13 +1,12 @@
 <!doctype html>
 <html>
   <head>
-    <title>kp-atomix - a javascript game from Krum Pet</title>
+    <meta charset="utf-8" />
+    <title>Atomix Online!</title>
 
     <script src='atomix_xlib.js'></script>
     <script src='atomix.js'></script>
     <script src='levels/katomic.js'></script>
-
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
@@ -28,13 +27,15 @@
   <body>
 
     <form>
-      <div class="center" id="controls">
 
+        <div class="center" id="controls">
 
         <div id="selectors">&nbsp;</div>
 
         <br />
+        <a href="solutions-katomic.html" id="show-solutions">Show Solutions</a>
 
+        &nbsp;&nbsp;&nbsp;
         <a href="#" id="prev-level">Prev Level</a>
 
         &nbsp;&nbsp;&nbsp;
@@ -44,7 +45,7 @@
         <a href="#" id="history-reset">Reset Level</a>
 
         &nbsp;&nbsp;&nbsp;
-        <a href="#" id="bookmark-link">Save Level</a>
+        <a href="#" id="bookmark-link" title="Bookmark This Link To Save Level">Save Level</a>
 
         <br />
       </div>
@@ -77,18 +78,41 @@
 
           <p id="success-dialog-message">&nbsp;</p>
           <p>
-             <b>User Name</b>
+             <b>Please Enter Your</b><br />
+             <b>Name or Nickname</b>
              <br />
              <input type="input" value='Anonymous' class="center" id="success-dialog-user" />
           </p>
 
           <p class="buttons">
             <input id="success-dialog-button-close" type="button" value="Close" />
-            <input id="success-dialog-button-save"  type="button" value="Save" />
+            <input id="success-dialog-button-save"  type="button" value="Submit" />
           </p>
 
-          <input id="success-dialog-moves" type="hidden" value='' />
-          <input id="success-dialog-user" type="hidden" value='' />
+      </form>
+    </div>
+
+    <div id="bookmark-dialog">
+
+      <h4>Bookmark This Level</h4>
+
+      <form id="bookmark-dialog-form">
+
+        <p><a id="bookmark-dialog-link">&nbsp;</a></p>
+
+          <p id="bookmark-dialog-message">
+            <b>Save this level by<br />bookmarking the above link.</b>
+            <br /><br />
+            <b>Either:</b> right click the link and choose the
+            'bookmark link' option from the menu.
+            <br /><br />
+            <b>Or:</b> click on the link and then bookmark the page.
+          </p>
+
+          <p class="buttons">
+            <input id="bookmark-dialog-button-close" type="button" value="Close" />
+          </p>
+
       </form>
     </div>
 
@@ -112,9 +136,13 @@
       </a>
       &nbsp;&nbsp;&nbsp;
       Inspired by
-      <a href="http://cross-browser.com/">
+      <a href="http://cross-browser.com/forums/viewtopic.php?id=803">
           Cross-Browser.com
       </a>
+
+      <br />
+      Email:
+      <a href="mailto:kp@atomix.hcoop.net">kp@atomix.hcoop.net</a>
     </div>
     </body>
 </html>

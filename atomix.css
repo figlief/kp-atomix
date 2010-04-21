@@ -81,3 +81,27 @@ html, body {
   text-align:center;
 
 }
+
+#bookmark-dialog {
+  position: absolute;
+  left: -500px;
+  width: 400px;
+  padding: 0;
+  color: #BF8660;
+  background-color: #FFF;
+  border: 2px solid #BF8660;
+
+  z-index: 102;
+
+  text-align:center;
+
+}
+
+td, th {
+  border: 1px #ccc solid;
+  padding-left: 2em;
+  padding-right: 2em;
+  padding-top: 2px;
+  padding-bottom: 2px;
+
+}

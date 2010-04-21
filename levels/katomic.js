@@ -23,11 +23,13 @@
 
 (function () {
 
-  var katomic = {
+  var katomic =
+//<levelSet>
+{
 
-  name: 'katomic',
+  "name": 'katomic',
 
-  levels: [
+  "levels": [
 
   {
     "id": "1",
@@ -3040,7 +3042,10 @@
       "...j....",
       "..klm..."
     ]
-  }]};
+  }
+]}
+//</levelSet>
+;
   if (typeof(KP_ATOMIX) !== 'undefined') {
     KP_ATOMIX.levelSets["katomic"] = katomic;
   } else {

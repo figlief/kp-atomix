@@ -6,8 +6,8 @@ KP_ATOMIX = (function () {
         OFFSET_X = 10,
         OFFSET_Y = 10,
 
-        MOLECULE_CELL_HEIGHT = 24,
-        MOLECULE_CELL_WIDTH = 24,
+        MOLECULE_CELL_HEIGHT = 39,
+        MOLECULE_CELL_WIDTH = 41,
         MOLECULE_OFFSET_X = 10,
         MOLECULE_OFFSET_Y = 10,
 
@@ -50,6 +50,7 @@ KP_ATOMIX = (function () {
             'G': 'bond-bottom-triple',
             'H': 'bond-left-triple'
         },
+        browserTitle = 'Atomix Online!',
         moveEncoder = 'abcdefghijklmnopqrstuvwxyz'.split(''),
         moveDecoder = {},
         gItems,
@@ -259,7 +260,7 @@ KP_ATOMIX = (function () {
         add('levelSet', nameLevelSet);
         add('level', '' + gLevel.id);
         add('history', encode_history(gg.history));
-        add('undo', encode_history(gg.redo));
+        //add('undo', encode_history(gg.redo));
 
         return sData.join('&');
     }
@@ -271,7 +272,7 @@ KP_ATOMIX = (function () {
         ;
         href = location.protocol + '//' + location.host + location.pathname;
         href += '?' + create_querry_string();
-        //alert(href + '\n' + bm);
+        document.title = format('\f \f: \f', nameLevelSet, iLevel + 1, browserTitle)
         bm.href = href;
     }
 
@@ -406,7 +407,7 @@ KP_ATOMIX = (function () {
     }
 
     function setup_controls() {
-        var ctrls = "test-dialog next-level prev-level history-reset history-undo history-redo";
+        var ctrls = "next-level prev-level history-reset history-undo history-redo bookmark-link";
         foreach(ctrls.split(' '), addClickLink);
     }
 
@@ -415,6 +416,10 @@ KP_ATOMIX = (function () {
         var m, l;
 
         switch (cmd) {
+
+        case 'bookmark-link':
+            show_bookmark_dialog();
+            return;
 
         case 'next-level':
             l = gLevels.length - 1;
@@ -509,7 +514,6 @@ KP_ATOMIX = (function () {
             gg.history.push([cr, cc, row, col]);
             gg.redo = [];
             move_current_atom(row, col, true);
-            update_bookmark_link();
         }
     }
 
@@ -542,6 +546,7 @@ KP_ATOMIX = (function () {
         move_in_grid(grid, startRow, startCol, row, col);
         gCurrent.row = row;
         gCurrent.col = col;
+        update_bookmark_link();
 
         aTime = 100 * Math.abs(startRow - row + startCol - col);
         gMoveFlag = true;
@@ -775,8 +780,25 @@ KP_ATOMIX = (function () {
         return xModalDialog.instances[sId];
     }
 
-    function show_success_dialog(sMsgHtml, fnCallback)
-    {
+    function show_bookmark_dialog(fnCallback) {
+
+        var sId = 'bookmark-dialog',
+            btnClose = $(sId + '-button-close');
+            link = $(sId + '-link');
+            blink = $('bookmark-link')
+
+        if (btnClose) {
+            btnClose.onclick = function () {
+                dialog(sId).hide();
+            };
+            link.href = blink.href;
+            link.innerHTML = nameLevelSet + ' ' + (iLevel + 1);
+            dialog(sId).show();
+        }
+    }
+
+    function show_success_dialog(sMsgHtml, fnCallback) {
+
         var sId = 'success-dialog',
             btnSave = $(sId + '-button-save'),
             btnClose = $(sId + '-button-close');
@@ -857,6 +879,7 @@ KP_ATOMIX = (function () {
         start_level(iLevel);
 
         (new xModalDialog('success-dialog'));
+        (new xModalDialog('bookmark-dialog'));
         gAjaxRequest = new xHttpRequest();
         $('success-dialog-user').value = gUserName;
     }
