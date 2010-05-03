@@ -176,6 +176,34 @@ KP_ATOMIX = (function () {
         return arrows;
     }
 
+    function onKeydown(evt)
+    {
+        var e = new xEvent(evt);
+        //xGetElementById('kd').value = e.keyCode;
+
+        switch (e.keyCode) {
+
+        case 37:    // IE and Moz
+        case 57387: // Opera 7
+            onClickArrow('arrow-left');
+            break;
+        case 38:
+        case 57385:
+            onClickArrow('arrow-up');
+            break;
+        case 39:
+        case 57388:
+            onClickArrow('arrow-right');
+            break;
+        case 40:
+        case 57386:
+            onClickArrow('arrow-down');
+            break;
+      }
+      xPreventDefault(evt);
+    }
+
+
     function get_item_rowcol(row, col) {
         var i, item;
         for (i = 0; i < gItems.length; i += 1) {
@@ -476,6 +504,10 @@ KP_ATOMIX = (function () {
 
     function onClickArrow(dir) {
 
+        if (gMoveFlag) {
+            return;
+        }
+
         var row = gCurrent.row,
             col = gCurrent.col,
             cr = row,
@@ -483,7 +515,7 @@ KP_ATOMIX = (function () {
             grid = gg.grid,
             data = grid[row];
 
-        switch (dir.id) {
+        switch ($(dir).id) {
 
         case 'arrow-left':
             while (data.charAt(col - 1) === '.') {
@@ -537,8 +569,10 @@ KP_ATOMIX = (function () {
         var grid = gg.grid
             , startCol = gCurrent.col
             , startRow = gCurrent.row
-            , aTime //animation time
+            , animationTime
         ;
+
+        gMoveFlag = true;
 
         hide_arrows();
         show_level_data();
@@ -548,9 +582,12 @@ KP_ATOMIX = (function () {
         gCurrent.col = col;
         update_bookmark_link();
 
-        aTime = 100 * Math.abs(startRow - row + startCol - col);
-        gMoveFlag = true;
-        xAniLine(gCurrent.atom, gA.xpos(col), gA.ypos(row), aTime, 1,
+        animationTime = 100 * Math.abs(startRow - row + startCol - col);
+
+        xAniLine(gCurrent.atom,
+            gA.xpos(col),
+            gA.ypos(row),
+            animationTime, 1,
             function () {
                 end_animation(testForSuccess);
             }
@@ -559,8 +596,9 @@ KP_ATOMIX = (function () {
 
     function gridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
 
-        var parent = xGetElementById(parentName),
-            atomCount = -1;
+        var parent = xGetElementById(parentName)
+            , atomCount = -1
+            , wh = 'width:' + cellWidth + 'px;height:' + cellHeight + 'px;'
 
         function xpos(col) {
             return xOffset + col * cellWidth;
@@ -575,26 +613,31 @@ KP_ATOMIX = (function () {
             var id;
 
             if (col < 0) {
-                id = row ? format(' id="\f"', row) : '';
+                id = row ? format(' id="\f" ', row) : ' ';
                 col = 0;
                 row = 0;
             } else {
-                id = '';
+                id = ' ';
                 col = xpos(col || 0);
                 row = ypos(row || 0);
             }
 
-            return format(
-                '<img\f src="images/\f.png" class="\f" style="left:\fpx;top:\fpx;width:\fpx;height:\fpx;" />',
-                id, image, cls, col, row, cellWidth, cellHeight
-            );
+            return '<img'
+                + id +  'src="images/'
+                + image  + '.png" class="'
+                + cls + '" style="left:'
+                + col + 'px;top:'
+                + row  + 'px;'
+                + wh  + '" />'
         }
 
         function createAtomDiv(col, row) {
-            return format(
-                '<div id="atom-\f-\f" class="atom" style="left:\fpx;top:\fpx;width:\fpx;height:\fpx;">',
-                parentName, atomCount, xpos(col), ypos(row), cellWidth, cellHeight
-            );
+            return '<div id="atom-'
+                + parentName + '-' + atomCount
+                + '" class="atom" style="left:' +
+                xpos(col) + 'px;top:'
+                + ypos(row) + 'px;'
+                + wh + '">'
         }
 
         function atom_factory(atom_type, col, row) {
@@ -847,6 +890,8 @@ KP_ATOMIX = (function () {
     }
 
     function init(lvl) {
+
+        xAddEventListener(document, 'keydown', onKeydown, false);
 
         gLevelSets = KP_ATOMIX.levelSets;
 

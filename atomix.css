@@ -37,7 +37,7 @@ html, body {
 
 #controls {
   padding: 10px;
-  padding-top: 20px;
+  padding-top: 5px;
 }
 
 #move-controls {
@@ -49,13 +49,13 @@ html, body {
   width: 99%;
 }
 
-/*  Modal Dialog */
+/*  Modal Dialogs */
 
 /*
   This element is dynamically created. There is only one per page.
-  xModalDialog assumes this class name.
+  xModalDialog assumes this class name. It is used to grey out
+  the page when modal dialogs are displayed.
 */
-
 .xModalDialogGreyElement {
   position: absolute;
   overflow: hidden;
