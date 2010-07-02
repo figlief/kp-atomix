@@ -1,7 +1,13 @@
 
 KP_ATOMIX = (function () {
 
-    var CELL_HEIGHT = 39,
+
+    var gSubmitSolutionToSite = "http://atomix.hcoop.net/node/save-move"
+        // change the above to submit solutions to your script or
+        // leave it as it is if you wish solutions to be submitted
+        // to the demo site.
+
+        CELL_HEIGHT = 39,
         CELL_WIDTH = 41,
         OFFSET_X = 10,
         OFFSET_Y = 10,
@@ -418,14 +424,14 @@ KP_ATOMIX = (function () {
     }
 
     function save_successful_move(fnResponse) {
-        // a successful move will be saved via ajax
+        // a successful move will be submitted via ajax
 
         var sData, response;
         sData = create_querry_string();
 
         response = gAjaxRequest.send(
             'GET',
-            '/node/save-move',
+            gSubmitSolutionToSite,
             sData,
             60000, // uTimeout milliseconds
             '', // sData +  '&' + sRndVar + '=' + a_random_number.
