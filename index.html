@@ -10,9 +10,6 @@
 
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
-    <link rel="openid.server" href="http://www.myopenid.com/server" />
-    <link rel="openid.delegate" href="http://krumpet.myopenid.com/" />
-
     <script>
 
      xAddEventListener(window, 'load', winOnLoad, false);
@@ -32,22 +29,28 @@
 
         <div id="selectors">&nbsp;</div>
 
-        <br />
-        <a href="solutions-katomic.html" id="show-solutions">Show Solutions</a>
+        <p>
+          <a href='#' id="bigger-link">Bigger</a>
+          &nbsp;&nbsp;&nbsp;
+          <a href = '#' id="smaller-link">Smaller</a>
+        </p>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="prev-level">Prev Level</a>
+        <p>
+          <a href="solutions-katomic.html" id="show-solutions">Show Solutions</a>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="next-level">Next Level</a>
+          &nbsp;&nbsp;&nbsp;
+          <a href="#" id="prev-level">Prev Level</a>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="history-reset">Reset Level</a>
+          &nbsp;&nbsp;&nbsp;
+          <a href="#" id="next-level">Next Level</a>
 
-        &nbsp;&nbsp;&nbsp;
-        <a href="#" id="bookmark-link" title="Bookmark This Link To Save Level">Save Level</a>
+          &nbsp;&nbsp;&nbsp;
+          <a href="#" id="history-reset">Reset Level</a>
 
-        <br />
+          &nbsp;&nbsp;&nbsp;
+          <a href="#" id="bookmark-link" title="Bookmark This Link To Save Level">Save Level</a>
+
+        </p>
       </div>
     </form>
 
@@ -67,6 +70,7 @@
 
         &nbsp;&nbsp;&nbsp;
         <a href="#" id="history-redo">Redo Move</a>
+
     </div>
 
 
@@ -81,7 +85,7 @@
              <b>Please Enter Your</b><br />
              <b>Name or Nickname</b>
              <br />
-             <input type="input" value='Anonymous' class="center" id="success-dialog-user" />
+             <input type="input" value='Me Is Name' class="center" id="success-dialog-user" />
           </p>
 
           <p class="buttons">
@@ -90,6 +94,22 @@
           </p>
 
       </form>
+    </div>
+
+     <div id="ajax-dialog">
+
+      <h4 id='ajax-dialog-title'>Submit Solution</h4>
+
+      <form id="ajax-dialog-form">
+
+          <div id="ajax-dialog-message"><p>Waiting for reply from server ...</p></div>
+
+          <p class="buttons">
+            <input id="ajax-dialog-button-close" type="button" value="Close" />
+          </p>
+
+      </form>
+
     </div>
 
     <div id="bookmark-dialog">
@@ -118,6 +138,7 @@
 
 
 
+
     <div class="center" id="footer">
 
       <hr />
@@ -131,18 +152,16 @@
 
       <br />
       Hosted by
-      <a href="http://hcoop.net/">
-          HCOOP
-      </a>
+      <a href="http://hcoop.net/">HCOOP</a>
       &nbsp;&nbsp;&nbsp;
       Inspired by
-      <a href="http://cross-browser.com/forums/viewtopic.php?id=803">
-          Cross-Browser.com
-      </a>
-
+      <a href="http://cross-browser.com/forums/viewtopic.php?id=803">Cross-Browser.com</a>
       <br />
       Email:
       <a href="mailto:kp@atomix.hcoop.net">kp@atomix.hcoop.net</a>
+      <br />
+      <br />
     </div>
+
     </body>
 </html>

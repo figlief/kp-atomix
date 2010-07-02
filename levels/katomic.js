@@ -27,7 +27,7 @@
 //<levelSet>
 {
 
-  "name": 'katomic',
+  "name": "katomic",
 
   "levels": [
 

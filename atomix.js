@@ -6,10 +6,20 @@ KP_ATOMIX = (function () {
         OFFSET_X = 10,
         OFFSET_Y = 10,
 
+        gCellHeight = CELL_HEIGHT,
+        gCellWidth = CELL_WIDTH,
+
         MOLECULE_CELL_HEIGHT = 39,
         MOLECULE_CELL_WIDTH = 41,
         MOLECULE_OFFSET_X = 10,
         MOLECULE_OFFSET_Y = 10,
+
+        gMoleculeCellHeight = MOLECULE_CELL_HEIGHT,
+        gMoleculeCellWidth = MOLECULE_CELL_WIDTH,
+
+        // time for atom to move one square (in milliseconds)
+        ANIMATION_TIME = 100,
+        gAnimationTime = ANIMATION_TIME,
 
         RIGHT = 0,
         LEFT = 1,
@@ -178,8 +188,8 @@ KP_ATOMIX = (function () {
 
     function onKeydown(evt)
     {
-        var e = new xEvent(evt);
-        //xGetElementById('kd').value = e.keyCode;
+        var e = new xEvent(evt),
+            doneKey = true;
 
         switch (e.keyCode) {
 
@@ -199,10 +209,15 @@ KP_ATOMIX = (function () {
         case 57386:
             onClickArrow('arrow-down');
             break;
-      }
-      xPreventDefault(evt);
-    }
 
+
+        default:
+            doneKey = false
+        }
+        if (doneKey) {
+            xPreventDefault(evt);
+        }
+    }
 
     function get_item_rowcol(row, col) {
         var i, item;
@@ -220,22 +235,22 @@ KP_ATOMIX = (function () {
         show_arrows(oAtom);
     }
 
-    function create_selectors(lvl) {
+    function create_selectors() {
 
         var level, select, selected;
 
-        select = '<select id="level-select">';
+        select = ['<select id="level-select">'];
 
         for (level = 0; level < gLevels.length; level += 1) {
-            selected = (lvl === level) ? ' selected="selected"' : '';
-            select += format(
+            selected = (iLevel === level) ? ' selected="selected"' : '';
+            select.push(format(
                 '<option\f>Level \f: \f</option>',
                 selected,
                 level + 1,
                 gLevels[level].name
-            );
+            ));
         }
-        $('selectors').innerHTML = select + "</select>";
+        $('selectors').innerHTML = select.join('') + "</select>";
         gLevelSelect = $('level-select');
 
         xAddEventListener(gLevelSelect, 'change', function () {
@@ -402,26 +417,27 @@ KP_ATOMIX = (function () {
         return (grid.indexOf(gg.molecule) !== -1);
     }
 
-    function save_successful_move(save) {
+    function save_successful_move(fnResponse) {
         // a successful move will be saved via ajax
-        if (save) {
-            var sData, response;
-            sData = create_querry_string();
 
-            response = gAjaxRequest.send(
-                'GET',
-                '/node/save-move',
-                sData,
-                60000, // uTimeout milliseconds
-                '', // sData +  '&' + sRndVar + '=' + a_random_number.
-                false, // bXml
-                null, // a user data object
-                function (req, status, data) {
-                    var text = req.responseText;
-                    alert(text);
-                }
-            );
-        }
+        var sData, response;
+        sData = create_querry_string();
+
+        response = gAjaxRequest.send(
+            'GET',
+            '/node/save-move',
+            sData,
+            60000, // uTimeout milliseconds
+            '', // sData +  '&' + sRndVar + '=' + a_random_number.
+            false, // bXml
+            null, // a user data object
+            function (req, status, data) {
+                var text = req.responseText;
+                //alert(text);
+                fnResponse(text, status);
+            }
+        );
+
     }
 
     function onCompleteLevel() {
@@ -429,14 +445,23 @@ KP_ATOMIX = (function () {
             format(
                 "You completed this level <br /> in <b>\f</b> moves.",
                 gg.history.length
-            ),
-            save_successful_move
+            )
         );
     }
 
     function setup_controls() {
-        var ctrls = "next-level prev-level history-reset history-undo history-redo bookmark-link";
-        foreach(ctrls.split(' '), addClickLink);
+        var ctrls = [
+          , 'next-level'
+          , 'prev-level'
+          , 'history-reset'
+          , 'history-undo'
+          , 'history-redo'
+          , 'bookmark-link'
+
+          , 'bigger-link'
+          , 'smaller-link'
+        ]
+        foreach(ctrls, addClickLink);
     }
 
     function onClickLink(cmd) {
@@ -444,6 +469,22 @@ KP_ATOMIX = (function () {
         var m, l;
 
         switch (cmd) {
+
+        case 'bigger-link':
+            gCellHeight += 2;
+            gCellWidth += 2;
+            gMoleculeCellHeight += 2;
+            gMoleculeCellWidth += 2;
+            start_level(iLevel);
+            return;
+
+        case 'smaller-link':
+            gCellHeight -= 2;
+            gCellWidth -= 2;
+            gMoleculeCellHeight -= 2;
+            gMoleculeCellWidth -= 2;
+            start_level(iLevel);
+            return;
 
         case 'bookmark-link':
             show_bookmark_dialog();
@@ -508,12 +549,13 @@ KP_ATOMIX = (function () {
             return;
         }
 
-        var row = gCurrent.row,
-            col = gCurrent.col,
-            cr = row,
-            cc = col,
-            grid = gg.grid,
-            data = grid[row];
+        var row = gCurrent.row
+          , col = gCurrent.col
+          , cr = row
+          , cc = col
+          , grid = gg.grid
+          , data = grid[row]
+        ;
 
         switch ($(dir).id) {
 
@@ -549,15 +591,6 @@ KP_ATOMIX = (function () {
         }
     }
 
-    function resizeArena(x, y) {
-        foreach(
-            xGetElementsByClassName('wall', gArena, img),
-            function (wall) {
-                xResizeTo(wall, x, y);
-            }
-        );
-    }
-
     function move_in_grid(grid, sr, sc, er, ec) {
         var atom = grid[sr].charAt(sc);
         grid[sr] = grid[sr].slice(0, sc) + '.' + grid[sr].slice(sc + 1);
@@ -567,9 +600,9 @@ KP_ATOMIX = (function () {
     function move_current_atom(row, col, testForSuccess) {
 
         var grid = gg.grid
-            , startCol = gCurrent.col
-            , startRow = gCurrent.row
-            , animationTime
+          , startCol = gCurrent.col
+          , startRow = gCurrent.row
+          , animationTime
         ;
 
         gMoveFlag = true;
@@ -582,7 +615,7 @@ KP_ATOMIX = (function () {
         gCurrent.col = col;
         update_bookmark_link();
 
-        animationTime = 100 * Math.abs(startRow - row + startCol - col);
+        animationTime = gAnimationTime * Math.abs(startRow - row + startCol - col);
 
         xAniLine(gCurrent.atom,
             gA.xpos(col),
@@ -613,17 +646,17 @@ KP_ATOMIX = (function () {
             var id;
 
             if (col < 0) {
-                id = row ? format(' id="\f" ', row) : ' ';
+                id = row ? ' id="' + row + '"' : '';
                 col = 0;
                 row = 0;
             } else {
-                id = ' ';
+                id = '';
                 col = xpos(col || 0);
                 row = ypos(row || 0);
             }
 
             return '<img'
-                + id +  'src="images/'
+                + id +  ' src="images/'
                 + image  + '.png" class="'
                 + cls + '" style="left:'
                 + col + 'px;top:'
@@ -631,33 +664,27 @@ KP_ATOMIX = (function () {
                 + wh  + '" />'
         }
 
-        function createAtomDiv(col, row) {
-            return '<div id="atom-'
-                + parentName + '-' + atomCount
-                + '" class="atom" style="left:' +
-                xpos(col) + 'px;top:'
-                + ypos(row) + 'px;'
-                + wh + '">'
-        }
-
         function atom_factory(atom_type, col, row) {
 
-            var spec = gLevel.atoms[atom_type],
-                sAtom, oAtom, bonds, bond;
+            var spec = gLevel.atoms[atom_type]
+              , sAtom
+              , bonds
+              , bond
+            ;
 
             atomCount += 1;
-            sAtom = createAtomDiv(col, row);
+            sAtom = '<div id="atom-'
+                + parentName + '-' + atomCount
+                + '" class="atom" style="left:'
+                + xpos(col) + 'px;top:'
+                + ypos(row) + 'px;'
+                + wh + '">';
 
             bonds = spec[1];
             for (bond = 0; bond < bonds.length; bond += 1) {
                 sAtom += new_img('bond', bond_kind[bonds.charAt(bond)], -1);
             }
             sAtom += new_img('atom', item_kind[spec[0]], -1);
-
-            if (parentName === 'arena') {
-                oAtom = {'row': row, 'col': col};
-                gItems.push(oAtom);
-            }
 
             return sAtom + '</div>';
         }
@@ -695,12 +722,15 @@ KP_ATOMIX = (function () {
     }
     function draw_arena() {
 
-        var item, mol,
-            row, col,
-            sArena,
-            sMolecule = '';
+        var item
+          , mol
+          , row
+          , col
+          , sArena = []
+          , sMolecule = []
+        ;
 
-        sArena = create_arrows();
+        sArena.push(create_arrows());
 
         for (row = 0 ; row < gg.grid.length; row += 1) {
             item = gg.grid[row];
@@ -708,16 +738,17 @@ KP_ATOMIX = (function () {
 
                 switch (item.charAt(col)) {
                 case '#':
-                    sArena += gA.new_img('wall', 'wall', col, row);
+                    sArena.push(gA.new_img('wall', 'wall', col, row));
                     break;
                 case '.':
                     break;
                 default:
-                    sArena += gA.atom_factory(item.charAt(col), col, row);
+                    sArena.push(gA.atom_factory(item.charAt(col), col, row));
+                    gItems.push({'row': row, 'col': col});
                 }
             }
         }
-        gA.parent.innerHTML = sArena;
+        gA.parent.innerHTML = sArena.join('');
         gA.set_container_size(col, row);
 
         foreach(gItems, function (oAtom, i) {
@@ -737,11 +768,11 @@ KP_ATOMIX = (function () {
             item = mol[row];
             for (col = 0; col < item.length; col += 1) {
                 if (item.charAt(col) !== '.') {
-                    sMolecule += gM.atom_factory(item.charAt(col), col, row);
+                    sMolecule.push(gM.atom_factory(item.charAt(col), col, row));
                 }
             }
         }
-        gM.parent.innerHTML = sMolecule;
+        gM.parent.innerHTML = sMolecule.join('');
         gM.set_container_size(col, row);
 
 
@@ -750,7 +781,6 @@ KP_ATOMIX = (function () {
 
         xTop('move-controls', xTop('main') + xHeight('main'));
         xWidth('move-controls', xWidth('arena'));
-
 
         set_current(gItems[0]);
         show_arrows();
@@ -791,13 +821,13 @@ KP_ATOMIX = (function () {
 
         gA = gridSpec('arena',
             OFFSET_X, OFFSET_Y,
-            CELL_WIDTH, CELL_HEIGHT
+            gCellWidth, gCellHeight
         );
         gA.clear_container();
 
         gM = gridSpec('molecule',
             MOLECULE_OFFSET_X, MOLECULE_OFFSET_Y,
-            MOLECULE_CELL_WIDTH, MOLECULE_CELL_HEIGHT
+            gMoleculeCellWidth, gMoleculeCellHeight
         );
         gM.clear_container();
 
@@ -840,7 +870,7 @@ KP_ATOMIX = (function () {
         }
     }
 
-    function show_success_dialog(sMsgHtml, fnCallback) {
+    function show_success_dialog(sMsgHtml) {
 
         var sId = 'success-dialog',
             btnSave = $(sId + '-button-save'),
@@ -848,12 +878,43 @@ KP_ATOMIX = (function () {
 
         if (btnSave && btnClose) {
             $(sId + '-message').innerHTML = sMsgHtml;
-            btnSave.onclick = btnClose.onclick = function () {
-                fnCallback(this === btnSave);
+            btnSave.onclick = function () {
+                dialog(sId).hide();
+                show_ajax_dialog();
+
+            };
+            btnClose.onclick = function () {
                 dialog(sId).hide();
             };
             dialog(sId).show();
         }
+    }
+
+    function show_ajax_dialog() {
+
+        var sId = 'ajax-dialog'
+          , btnClose = $(sId + '-button-close')
+          , oTitle = $(sId + '-title')
+          , oMsg = $(sId + '-message')
+        ;
+
+        if (btnClose) {
+            btnClose.onclick = function () {
+               dialog(sId).hide();
+            };
+        }
+        oMsg.innerHTML = 'Contacting server ...';
+        oTitle.innerHTML = 'Submitting Solution';
+        dialog(sId).show();
+
+        save_successful_move(function(text, status) {
+            if (status) {
+                text = '<p><b>Sorry</b>. Failed to contact server</p>';
+            }
+            oTitle.innerHTML = 'Submitted Solution';
+            oMsg.innerHTML =  text;
+        });
+
     }
 
     function parse_query() {
@@ -921,12 +982,15 @@ KP_ATOMIX = (function () {
                 alert('Invalid History: ' + e);
             }
         }
-        start_level(iLevel);
 
         (new xModalDialog('success-dialog'));
         (new xModalDialog('bookmark-dialog'));
+        (new xModalDialog('ajax-dialog'));
+
         gAjaxRequest = new xHttpRequest();
         $('success-dialog-user').value = gUserName;
+
+        start_level(iLevel);
     }
 
     return {
