@@ -2,7 +2,7 @@
 KP_ATOMIX = (function () {
 
 
-    var gSubmitSolutionToSite = "http://atomix.hcoop.net/node/save-move"
+    var gSubmitSolutionToSite = "http://atomix.hcoop.net/node/save-move",
         // change the above to submit solutions to your script or
         // leave it as it is if you wish solutions to be submitted
         // to the demo site.
