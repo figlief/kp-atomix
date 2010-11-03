@@ -1,47 +1,57 @@
 <!doctype html>
+
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Atomix Online!</title>
-
-    <script src='atomix_xlib.js'></script>
-    <script src='atomix.js'></script>
-    <script src='levels/katomic.js'></script>
-
+    <title>kp-atomix</title>
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
-    <script>
+<script>
+   window.onload = function () {
+       KP_ATOMIX.init();
+   }
+   window.onunload = function(){}
+</script>
 
-     xAddEventListener(window, 'load', winOnLoad, false);
-     function winOnLoad()
-     {
-        KP_ATOMIX.init();
-     }
-     window.onunload = function(){}
-    </script>
+
   </head>
-
   <body>
+
+    <!-- start headbar -->
+
+<div id="headbar">
+
+  <a href="index.html">Home</a>
+  &nbsp;&nbsp;
+  <a href="about.html">About</a>
+
+  &nbsp;&nbsp;&nbsp;
+  Show Solutions for: <a href="solutions/katomic.html" id="show-solutions-katomic">katomic</a>&nbsp;<a href="solutions/original.html" id="show-solutions-original">original</a>&nbsp;<a href="solutions/pack1.html" id="show-solutions-pack1">pack1</a>
+
+</div>
+
+    <!-- end headbar -->
+
+    <!-- start contents -->
 
     <form>
 
-        <div class="center" id="controls">
+      <div class="center" id="controls">
 
-        <div id="selectors">&nbsp;</div>
+        <div id="selectors">
 
         <p>
-          <a href='#' id="bigger-link">Bigger</a>
-          &nbsp;&nbsp;&nbsp;
-          <a href = '#' id="smaller-link">Smaller</a>
+
+          <span id="levelset-selector-span"></span>
+          <span id="level-selector-span"></span>
         </p>
-
         <p>
-          <a href="solutions-katomic.html" id="show-solutions">Show Solutions</a>
 
           &nbsp;&nbsp;&nbsp;
           <a href="#" id="prev-level">Prev Level</a>
 
           &nbsp;&nbsp;&nbsp;
+
           <a href="#" id="next-level">Next Level</a>
 
           &nbsp;&nbsp;&nbsp;
@@ -49,30 +59,81 @@
 
           &nbsp;&nbsp;&nbsp;
           <a href="#" id="bookmark-link" title="Bookmark This Link To Save Level">Save Level</a>
-
         </p>
+
+        </div>
       </div>
     </form>
 
     <hr />
 
+    <div id="loading">Atomix is loading ...</div>
     <div id="main">
-      <div id="arena">&nbsp;</div>
-      <div id="molecule">&nbsp;</div>
-    </div>
+      <div id="arena"></div>
 
-    <div class="center" id="move-controls">
+      <div id="molecule"></div>
 
-        <a href="#" id="history-undo">Undo Move</a>
+      <div class="center" id="move-controls">
+
+        <a href="#" id="history-undo">Undo</a>
 
         &nbsp;&nbsp;&nbsp;
         <span id="move-no">&nbsp;</span>
 
         &nbsp;&nbsp;&nbsp;
-        <a href="#" id="history-redo">Redo Move</a>
+
+        <a href="#" id="history-redo">Redo</a>
+      </div>
 
     </div>
 
+    <!-- end contents -->
+
+    <!-- start after-main-->
+    <div id="after-main">
+
+
+<hr />
+<div id="levelset-credits">
+  LevelSet: <span id="levelset-credits-name">&nbsp;</span>
+    &nbsp;&nbsp;
+  Credits: <span id="levelset-credits-credit">&nbsp;</span>
+    &nbsp;&nbsp;
+  License: <span id="levelset-credits-license">&nbsp;</span>
+</div>
+
+
+<!-- end blurb -->
+
+        <!-- start footer -->
+
+<div class="center" id="footer">
+
+  <hr />
+
+  <a href="http://code.google.com/p/kp-atomix/">kp-atomix</a>
+  is a javascript version of the
+  <a href="http://kde.org/"> kde</a>
+  game
+  <a href="http://games.kde.org/game.php?game=katomic">
+    katomic
+  </a>
+
+  <br />
+  Inspired by
+  <a href="http://cross-browser.com/forums/viewtopic.php?id=803">Cross-Browser.com</a>
+
+</div>
+
+        <!-- end footer -->
+
+
+    </div>
+    <!-- end after-main -->
+
+    <!-- start tail_scripts -->
+
+<!-- start dialogs -->
 
     <div id="success-dialog">
 
@@ -81,16 +142,21 @@
       <form id="success-dialog-form">
 
           <p id="success-dialog-message">&nbsp;</p>
-          <p>
+          <p style="display:none">
              <b>Please Enter Your</b><br />
              <b>Name or Nickname</b>
              <br />
              <input type="input" value='Me Is Name' class="center" id="success-dialog-user" />
+
           </p>
 
           <p class="buttons">
             <input id="success-dialog-button-close" type="button" value="Close" />
-            <input id="success-dialog-button-save"  type="button" value="Submit" />
+            <input
+                   style="display:none"
+                   id="success-dialog-button-save"
+                   type="button" value="Submit"
+            />
           </p>
 
       </form>
@@ -98,7 +164,7 @@
 
      <div id="ajax-dialog">
 
-      <h4 id='ajax-dialog-title'>Submit Solution</h4>
+      <h4 id='ajax-dialog-title'>Submiting Solution</h4>
 
       <form id="ajax-dialog-form">
 
@@ -106,6 +172,7 @@
 
           <p class="buttons">
             <input id="ajax-dialog-button-close" type="button" value="Close" />
+
           </p>
 
       </form>
@@ -126,6 +193,7 @@
             <b>Either:</b> right click the link and choose the
             'bookmark link' option from the menu.
             <br /><br />
+
             <b>Or:</b> click on the link and then bookmark the page.
           </p>
 
@@ -136,22 +204,13 @@
       </form>
     </div>
 
+<!-- end dialogs -->
+<script src="js/atomix_xlib.js"></script>
+<script src="js/atomix.js"></script>
+<script src="levels/katomic.js"></script>
+<script src="levels/original.js"></script>
+<script src="levels/pack1.js"></script>
+    <!-- end tail scripts -->
 
-
-
-    <div class="center" id="footer">
-
-      <hr />
-
-      kp-atomix is a javascript version of the
-      <a href="http://kde.org/"> kde</a>
-      game
-      <a href="http://games.kde.org/game.php?game=katomic">
-        katomic
-      </a>
-
-      <br />
- </div>
-
-    </body>
+  </body>
 </html>

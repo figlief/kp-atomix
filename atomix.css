@@ -1,6 +1,6 @@
 html, body {
   margin: 0px;
-  padding 0px;
+  padding: 0px;
 }
 
 .atom, .bond, .arrow, .wall {
@@ -27,17 +27,38 @@ html, body {
   border: thick outset gray;
 }
 
+#loading {
+  height: 200px;
+  overflow: hidden;
+}
+
 #molecule {
   position: absolute;
   padding: 0px;
   margin: 0px;
   border: thick outset gray;
+  cursor: move;
 }
 
+#headbar {
+  background-color: black;
+  color: white;
+  font-size: smaller;
+  font-weight: bold;
+  padding: 0.25em;
+
+}
+
+#headbar a {
+    color: white;
+}
 
 #controls {
+
   padding: 10px;
   padding-top: 5px;
+  text-align: center;
+
 }
 
 #controls p {
@@ -46,13 +67,38 @@ html, body {
   padding-top: 5px;
 }
 
-#move-controls {
+#selectors {
 
+}
+
+#move-controls {
+ position: absolute;
+}
+
+#blurb {
+  width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+#after-main {
+  position: relative;
 }
 
 #footer {
   font-size: smaller;
   width: 99%;
+  padding-bottom: 1em;
+}
+
+.hide-selector {
+  display: none;
+}
+#levelset-credits {
+  text-align: center;
+  font-weight: bold;
+  font-size: smaller;
 }
 
 /*  Modal Dialogs */
@@ -62,7 +108,7 @@ html, body {
   xModalDialog assumes this class name. It is used to grey out
   the page when modal dialogs are displayed.
 */
-.xModalDialogGreyElement {
+.xModalDialogGreyElement, .xShieldElement{
   position: absolute;
   overflow: hidden;
   width: 10px; height: 10px;
@@ -73,49 +119,33 @@ html, body {
   filter: alpha(opacity=30);
 }
 
-#success-dialog {
+.xxModalDialog {
   position: absolute;
-  left: -500px;
+  overflow: auto;
+  left: -50000px;
   width: 400px;
-  padding: 0;
+  padding: 1em;
   color: #BF8660;
   background-color: #FFF;
   border: 2px solid #BF8660;
-
-  z-index: 102;
-
-  text-align:center;
-
+  z-index: 99;
+  text-align: center;
 }
+
+#success-dialog {
+  position: absolute;
+  left: -50000px;
+}
+
 
 #ajax-dialog {
   position: absolute;
-  left: -500px;
-  width: 400px;
-  padding: 0;
-  color: #BF8660;
-  background-color: #FFF;
-  border: 2px solid #BF8660;
-
-  z-index: 102;
-
-  text-align:center;
-
+  left: -50000px;
 }
 
 #bookmark-dialog {
   position: absolute;
-  left: -500px;
-  width: 400px;
-  padding: 0;
-  color: #BF8660;
-  background-color: #FFF;
-  border: 2px solid #BF8660;
-
-  z-index: 102;
-
-  text-align:center;
-
+  left: -50000px;
 }
 
 #solutions {
@@ -135,4 +165,16 @@ html, body {
   font-size: smaller;
   text-align: center;
   font-style: italic;
+}
+
+#disqus_thread {
+  margin-left:20%;
+  margin-right:20%;
+  padding: 2em;
+  background-color: yellow;
+}
+
+#sdf-promotion {
+  font-size: large;
+  font-weight: bold;
 }
