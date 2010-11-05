@@ -1,0 +1,217 @@
+=================================
+Atomix level sets in JSON format.
+=================================
+
+::
+
+  This document is an informal specification of the JSON[1] format used by
+  Atomix Online at SDF[2] to describe Atomix level sets.
+
+1. http://ledger.sdf.org/atomix/
+2. http://www.json.org/
+
+::
+
+  Each file must contain  a single levelSet' object and be encoded using
+  the Unicode 'utf-8' format.
+
+The levelSet object
+--------------------
+
+::
+
+ The levelSet object is a key/value dictionary containing administrative
+ information and a list of 'level' objects.
+
+  name:
+
+    The name of the level set, eg 'katomic'
+
+
+  credits:
+
+    A link to a page identifying the author or organisation who own the
+    copyright for the levels (html format).
+
+    example:
+
+      "credits":
+        "<a href='http://games.kde.org/game.php?game=katomic'>Katomic Team</a>"
+
+
+  license:
+
+    A link to an page describing the license which controls the use of this
+    level set (html format).
+
+    example:
+
+      "license": "<a href='http://www.gnu.org/licenses/gpl.html'>GPL</a>"
+
+
+  levels:
+
+    An ordered list of 'level' objects. The order in which the levels
+    appear in the list is the order that the levels should be presented to
+    user.
+
+
+The 'level' object
+------------------
+
+::
+
+ Each level in the set is described by a level object.
+
+  id:
+
+    This item should be a string that uniquely identifies the level within
+    the set. It should be short and use only the letters [a-z] the digits
+    [0-9] or the underscore (_). The lexicographical ordering of the id's
+    should not be regarded as significant.
+
+  name:
+
+    A name to be used when describing the level to the end user. The name
+    should not be regarded as an identifier as it may change over time or
+    differ according to language contexts.
+
+  atoms:
+
+    A dictionary where the keys are single characters that are used to
+    identify individual atoms used in the molecule and the values are atom
+    descriptors to be described later.
+
+    example:
+
+      "atoms": {
+        "1": ["1", "b"],
+        "2": ["1", "d"],
+        "3": ["3", "bf"],
+        "4": ["2", "bdfh"],
+        "5": ["1", "f"],
+        "6": ["1", "h"]
+      }
+
+  arena:
+
+    This is a list which describes the shape of the playing area, the
+    position of the walls, and the initial position of the atoms.
+
+    It consists of a list strings. Each string in the list describes one
+    row in the arena. Each character in the string represents a cell in
+    the row and describes the initial contents of the cell.
+
+    Some characters have a predefined meaning: '#' marks a wall and '.'
+    marks an empty square. The other characters are from the keys of the
+    atoms dictionary and identify the position of the atoms.
+
+    All strings in the list must have the same length and the number of
+    rows and columns must be the minimum required to contain the arena.
+
+    example:
+
+      "arena": [
+        "...##########",
+        "...#....3#..#",
+        "...#.#...#..#",
+        "...#..#.....#",
+        "####...#...##",
+        "#..4#..4#...#",
+        "#...2#1..#.##",
+        "#..#..#.5#.#.",
+        "##1##..#.###.",
+        ".#....3...#..",
+        ".#....#.6.#..",
+        ".######.5.#..",
+        "......#####.."
+      ]
+
+  molecule:
+
+    This is a list which describes the composition of the molecule to be
+    assembled. The specification is similar to that for the grid except
+    only '.' or a single atom may appear in each cell.
+
+    All strings must be the same length and the number of rows and columns
+    must be the minimum required to contain the molecule.
+
+    example:
+
+      "molecule": [
+        ".2.5.5",
+        "..4.3.",
+        ".3.4..",
+        "1.1.6."
+      ]
+
+Atom descriptors.
+-----------------
+
+::
+
+  An atom descriptor is a list containing two strings. The first string
+  indicates which atom or connector is to be used, the second string
+  is a list of bonds for that atom (an empty list for connectors.)
+
+  Each character in the second string represents one bond description, the
+  order in which they appear is not relevant.
+
+  example: ["2", "bdfh"]
+
+    By using the maps below (taken from the kp-atomix client) it can seen
+    that this atom is a carbon atom with four single bonds at top-right
+    top-left, bottom-right and bottom-left.
+
+
+Maps for interpreting atom descriptors.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  These maps are taken from the kp-atomix client and can be used to
+  interpret atom descriptors.
+
+        item_kind = {
+            '1': 'atom-h', // hydrogen
+            '2': 'atom-c', // carbon
+            '3': 'atom-o', // oxygen
+            '4': 'atom-n', // nitrogen
+            '5': 'atom-s', // sulphur
+            '6': 'atom-f', // fluorine
+            '7': 'atom-cl', // chlorine
+            '8': 'atom-br', // bromine
+            '9': 'atom-p', // phosphorus
+            'o': 'atom-crystal',
+            'A': 'connector-horizontal',
+            'B': 'connector-slash',
+            'C': 'connector-vertical',
+            'D': 'connector-backslash',
+
+            'E': 'crystal-E',
+            'F': 'crystal-F',
+            'G': 'crystal-G',
+            'H': 'crystal-H',
+            'I': 'crystal-I',
+            'J': 'crystal-J',
+            'K': 'crystal-K',
+            'L': 'crystal-L'
+        },
+        bond_kind = {
+            'a': 'bond-top',
+            'b': 'bond-top-right',
+            'c': 'bond-right',
+            'd': 'bond-bottom-right',
+            'e': 'bond-bottom',
+            'f': 'bond-bottom-left',
+            'g': 'bond-left',
+            'h': 'bond-top-left',
+            'A': 'bond-top-double',
+            'B': 'bond-right-double',
+            'C': 'bond-bottom-double',
+            'D': 'bond-left-double',
+            'E': 'bond-top-triple',
+            'F': 'bond-right-triple',
+            'G': 'bond-bottom-triple',
+            'H': 'bond-left-triple'
+        },
