@@ -56,7 +56,8 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             'I': 'crystal-I',
             'J': 'crystal-J',
             'K': 'crystal-K',
-            'L': 'crystal-L'
+            'L': 'crystal-L',
+            'M': 'crystal-M'
         },
         bond_kind = {
             'a': 'bond-top',
@@ -74,9 +75,13 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             'E': 'bond-top-triple',
             'F': 'bond-right-triple',
             'G': 'bond-bottom-triple',
-            'H': 'bond-left-triple'
+            'H': 'bond-left-triple',
+            '2': 'bond-top-right-double',
+            '4': 'bond-bottom-left-double',
+            '3': 'bond-bottom-right-double',
+            '1': 'bond-top-left-double'
         },
-        browserTitle = 'Atomix Online!',
+        browserTitle = 'Atomix Online at SDF',
         moveEncoder = 'abcdefghijklmnopqrstuvwxyz'.split(''),
         moveDecoder = {},
         gItems,
