@@ -15,30 +15,48 @@ html, body {
 
 .center {text-align: center;}
 
-#main {
-  position: relative;
-}
-
-#arena {
-  position: absolute;
-  padding: 0px;
-  margin: 0px;
-  left: 10px;
-  border: thick outset gray;
-}
 
 #loading {
-  height: 200px;
+  font-size: xx-large;
+  color: red;
   overflow: hidden;
 }
 
-#molecule {
-  position: absolute;
+
+table {
+   margin: 20px;
+}
+
+td {
+  vertical-align: top;
+}
+
+#arena-container {
+  padding: 20px;
+}
+#arena {
+  position: relative;
   padding: 0px;
   margin: 0px;
-  border: thick outset gray;
-  cursor: move;
 }
+.arena-border {
+  border: thick ridge grey;
+}
+
+#molecule-container {
+  padding: 15px;
+  margin: 15px;
+  border: thick ridge grey;
+}
+
+#molecule {
+  position: relative;
+  padding: 0px;
+  margin: 0px;
+  cursor: move;
+
+}
+
 
 #headbar {
   background-color: black;
@@ -54,7 +72,6 @@ html, body {
 }
 
 #controls {
-
   padding: 10px;
   padding-top: 5px;
   text-align: center;
@@ -72,7 +89,8 @@ html, body {
 }
 
 #move-controls {
- position: absolute;
+ padding-top: 20px;
+ text-align: center;
 }
 
 #blurb {
@@ -121,8 +139,11 @@ html, body {
 
 .xxModalDialog {
   position: absolute;
+
   overflow: auto;
   left: -50000px;
+  top: 0px;
+
   width: 400px;
   padding: 1em;
   color: #BF8660;
@@ -148,17 +169,25 @@ html, body {
   left: -50000px;
 }
 
-#solutions {
+.solutions-table {
   margin: auto;
 }
 
-#solutions td, #solutions th {
+.solutions-table td, .solutions-table th {
   border: 1px #ccc solid;
-  padding-left: 2em;
-  padding-right: 2em;
+  padding-left: 1em;
+  padding-right: 1em;
   padding-top: 2px;
   padding-bottom: 2px;
+  vertical-align: middle;
+}
 
+.solutions-table tr {
+	border: hidden;
+}
+
+tr.no-border, tr.no-border td {
+  border: hidden;
 }
 
 #lastupdated {
@@ -167,14 +196,20 @@ html, body {
   font-style: italic;
 }
 
-#disqus_thread {
-  margin-left:20%;
-  margin-right:20%;
-  padding: 2em;
-  background-color: yellow;
-}
-
 #sdf-promotion {
   font-size: large;
   font-weight: bold;
+}
+
+.recent-status-img {
+  margin: 0px;
+  padding: 0px;
+  height: 22px;
+  width: 22px;
+  vertical-align: middle;
+}
+
+.emblem {
+	height: 22px;
+	width: 22px;
 }

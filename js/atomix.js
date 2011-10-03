@@ -1,6 +1,6 @@
 
 if (typeof(KP_ATOMIX) === 'undefined') {
-    KP_ATOMIX = {
+    var KP_ATOMIX = {
         init: null,
         levelSets: {}
     };
@@ -10,16 +10,12 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
     var CELL_HEIGHT = 39,
         CELL_WIDTH = 41,
-        OFFSET_X = 10,
-        OFFSET_Y = 10,
 
         gCellHeight = CELL_HEIGHT,
         gCellWidth = CELL_WIDTH,
 
         MOLECULE_CELL_HEIGHT = 39,
         MOLECULE_CELL_WIDTH = 41,
-        MOLECULE_OFFSET_X = 10,
-        MOLECULE_OFFSET_Y = 10,
 
         gMoleculeCellHeight = MOLECULE_CELL_HEIGHT,
         gMoleculeCellWidth = MOLECULE_CELL_WIDTH,
@@ -32,6 +28,8 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         LEFT = 1,
         UP = 2,
         DOWN = 3,
+
+        arena_margin = 20,
 
         item_kind = {
             '1': 'atom-h', // hydrogen
@@ -76,10 +74,10 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             'F': 'bond-right-triple',
             'G': 'bond-bottom-triple',
             'H': 'bond-left-triple',
+            '1': 'bond-top-left-double',
             '2': 'bond-top-right-double',
-            '4': 'bond-bottom-left-double',
             '3': 'bond-bottom-right-double',
-            '1': 'bond-top-left-double'
+            '4': 'bond-bottom-left-double'
         },
         browserTitle = 'Atomix Online at SDF',
         moveEncoder = 'abcdefghijklmnopqrstuvwxyz'.split(''),
@@ -94,7 +92,6 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         gUserName = 'anonymous',
         gAjaxRequest,
 
-
         gLevelSets = {}, // list of LevelSet objects derived from KP_ATOMIX.levelSets
         gLevelSetNames = [],
         gLevelSet = null,  // currently active LevelSet object
@@ -104,6 +101,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         dlgAjax,
 
         gg, // gLevel.gameData
+
         //
         $;
 
@@ -222,33 +220,87 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         return arrows;
     }
 
+    function onNextAtom(dir) {
+
+        switch (dir) {
+
+        case 'down':
+            break;
+        case 'up':
+            break;
+        case 'left':
+            break;
+        case 'right':
+            break;
+
+        }
+
+    }
+
     function onKeydown(evt)
     {
         var e = new xEvent(evt),
             doneKey = true;
 
-        switch (e.keyCode) {
+        if (kp_Shield.isUp()) {
+            console.log('shield is up')
+            return;
+        }
 
-        case 37:    // IE and Moz
-        case 57387: // Opera 7
-            onClickArrow('arrow-left');
-            break;
-        case 38:
-        case 57385:
-            onClickArrow('arrow-up');
-            break;
-        case 39:
-        case 57388:
-            onClickArrow('arrow-right');
-            break;
-        case 40:
-        case 57386:
-            onClickArrow('arrow-down');
-            break;
+        function dok(a, b){
+            console.log('dok:', a, b)
+            if (e.shiftKey && b) {
+                onClickLink(b);
+            }
+            else {
+                onClickLink(a);
+            }
+        }
 
+        function doa(d) {
+            if (e.shiftKey) {
+                //onNextAtom(d);
+            } else {
+                onClickArrow('arrow-' + d);
+            }
+        }
+        console.log(e.keyCode + ', ' + (e.shiftKey ? 'shifted': 'normal'));
+        switch(e.keyCode) {
 
-        default:
-            doneKey = false;
+            case 85: //u
+                dok('history-undo', 'history-redo')
+                break;
+            case 82: //r
+                dok('history-redo', '')
+                break;
+            case 78: //n
+                dok('next-level', '')
+                break;
+            case 80: //p
+                dok('prev-level', '')
+                break;
+            case 66: //b
+                dok('bigger-link', '')
+                break;
+            case 83: //s
+                dok('smaller-link', 'bookmark-link')
+                break;
+
+            case 74: //j
+                doa('left');
+                break;
+            case 75: //k
+                doa('down');
+                break;
+            case 76:  //l
+                doa('right');
+                break;
+            case 73:  //i
+                doa('up');
+                break;
+
+            default:
+               doneKey = false;
         }
         if (doneKey) {
             xPreventDefault(evt);
@@ -278,13 +330,10 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
     function create_levelset_selectors() {
 
-        var select = ['<select id="levelset-select">'];
-
-        foreach(gLevelSetNames, function (name) {
-            select.push('<option>' + name + '</option>');
-        });
-
-        $('levelset-selector-span').innerHTML = select.join('') + "</select>";
+        $('levelset-selector-span').innerHTML  =
+              '<select id="levelset-select"><option>'
+            + gLevelSetNames.join('</option><option>')
+            + '</option></select>';
 
         xAddEventListener($('levelset-select'), 'change', function () {
            setTimeout(onLevelSetSelect, 100);
@@ -352,29 +401,39 @@ if (typeof(KP_ATOMIX) === 'undefined') {
     }
 
     function create_move_decoder(i) {
-        foreach('abcdefghijklmnopqrstuvwxyz'.split(''), function (s) {
-            moveDecoder[s] = i;
-            i += 1;
+        foreach(moveEncoder, function (s) {
+            moveDecoder[s] = i++;
         });
     }
     create_move_decoder(0);
 
+
     // Modify a grid to reflect a sequence of moves.
     // Throws an Error if the move sequence is invalid.
     // Returns the modified grid otherwise.
+
+    var InvalidMoveError = function (msg) {
+        this.prototype = Error.prototype;
+        this.name = "InvalidMoveError";
+        this.message = "Invalid Move: " + msg + '.';
+    };
+
+    function _assert(p, msg) {
+        if (p) return;
+        throw new InvalidMoveError(msg);
+    }
     function replay_moves(moveList, grid) {
 
         var endCol
-            , endRow
-            , startCol
-            , startRow
-            , row
-            , col
-            , data
-            , atom
-            , move
-            , moveIdx
-            , dir
+          , endRow
+          , startCol
+          , startRow
+          , row
+          , col
+          , data
+          , atom
+          , move
+          , moveIdx
         ;
 
         for (moveIdx = 0; moveIdx < moveList.length; moveIdx += 1) {
@@ -386,61 +445,27 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             endCol = move[3];
 
             atom = grid[startRow][startCol];
-            if (atom ===  '.' || atom === '#') {
-                throw new Error('not an atom');
-            }
+            _assert(atom !==  '.' && atom !== '#', 'no atom here');
 
             data = grid[row];
 
             if (startRow === endRow) {
-                if (startCol === endCol) {
-                    throw new Error('not moved!');
-                }
-                dir = RIGHT;
-                if (startCol > endCol) {
-                    dir = LEFT;
+                _assert(startCol !== endCol, 'no movement')
+                if (endCol < startCol) {
+                    while (data[col - 1] === '.') col -= 1;
+                } else {
+                    while (data[col + 1] === '.') col += 1;
                 }
             } else {
-                if (startCol !== endCol) {
-                    throw new Error('diagonal moves illegal!');
-                }
-                dir = DOWN;
-                if (startRow > endRow) {
-                    dir = UP;
+                _assert(startCol === endCol, 'diagonal move')
+                if (endRow < startRow) {
+                    while (grid[row - 1][col] === '.') row -= 1;
+                } else {
+                    while (grid[row + 1][col] === '.') row += 1;
                 }
             }
-
-            switch (dir) {
-
-            case LEFT:
-                while (data[col - 1] === '.') {
-                    col -= 1;
-                }
-                break;
-            case RIGHT:
-                while (data[col + 1] === '.') {
-                    col += 1;
-                }
-                break;
-            case UP:
-                while (grid[row - 1][col] === '.') {
-                    row -= 1;
-                }
-                break;
-            case DOWN:
-                while (grid[row + 1][col] === '.') {
-                    row += 1;
-                }
-                break;
-
-            default:
-                break;
-            }
-
-            if (row !== endRow || col !== endCol) {
-                throw new Error('end points don\'t match');
-            }
-            move_in_grid(grid, startRow, startCol, row, col);
+            _assert(row === endRow && col === endCol, 'path blocked');
+            move_in_grid(grid, startRow, startCol, endRow, endCol);
         }
         return grid;
     }
@@ -566,12 +591,10 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         default:
             return;
         }
-
         return;
     }
 
     function onClickAtom(oAtom) {
-
         set_current(oAtom);
     }
 
@@ -659,7 +682,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         );
     }
 
-    function gridSpec(parentName, xOffset, yOffset, cellWidth, cellHeight) {
+    function gridSpec(parentName, cellWidth, cellHeight) {
 
         var parent = $(parentName)
             , atomCount = -1
@@ -667,11 +690,11 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         ;
 
         function xpos(col) {
-            return xOffset + col * cellWidth;
+            return col * cellWidth;
         }
 
         function ypos(row) {
-            return yOffset + row * cellHeight;
+            return row * cellHeight;
         }
 
         function new_img(cls, image, col, row) {
@@ -725,8 +748,8 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
         function set_container_size(col, row) {
             xResizeTo(parent,
-                xpos(col) + 2 * xOffset,
-                ypos(row) + 2 * yOffset
+                col * cellWidth,
+                row * cellHeight
             );
         }
 
@@ -738,8 +761,6 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             parent: parent,
             xpos: xpos,
             ypos: ypos,
-            xOffset: xOffset,
-            yOffset: yOffset,
             cellWidth: cellWidth,
             cellHeight: cellHeight,
             atom_factory: atom_factory,
@@ -749,11 +770,19 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         };
     }
 
-    function addClick(e, target, data) {
-        xAddEventListener(e, 'click', function (evt) {
+    function addClickAtom(e, target, data) {
+        xAddEventListener(e, 'mouseover', function (evt) {
+            if (!gMoveFlag) {
+                target(data);
+            }
+        }, false);
+    }
+    function addClickArrow(e, target, data) {
+        xAddEventListener(e, 'mousedown', function (evt) {
             target(data);
         }, false);
     }
+
     function draw_arena() {
 
         var item
@@ -787,14 +816,14 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
         foreach(gItems, function (oAtom, i) {
             oAtom.atom = $('atom-arena-' + i);
-            addClick(oAtom.atom, onClickAtom, oAtom);
+            addClickAtom(oAtom.atom, onClickAtom, oAtom);
         });
 
         gArrows = [];
         foreach(sArrows, function (arrow) {
             arrow = $(arrow);
             gArrows.push(arrow);
-            addClick(arrow, onClickArrow, arrow);
+            addClickArrow(arrow, onClickArrow, arrow);
         });
 
         mol = gLevelSet.level.molecule;
@@ -809,15 +838,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         gM.parent.innerHTML = sMolecule.join('');
         gM.set_container_size(col, row);
 
-        // xTop('main', xHeight('controls'));
-
-        xMoveTo(gM.parent, xRight(gA.parent) + 25, xTop('arena'));
-        //#xHeight('main', xHeight('arena') + xHeight('move-controls'));
-
-        xTop('move-controls', xBottom('arena') + 20);
-        xWidth('move-controls', xWidth('arena'));
-
-        xTop('after-main', xBottom('move-controls') + 20);
+        xWidth('arena-container', xWidth('arena') + arena_margin * 2);
 
         set_current(gItems[0]);
         show_arrows();
@@ -839,6 +860,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         );
         gg.history = [];
         gg.redo = [];
+        xMoveTo('molecule', 0, 0)
     }
 
     function test_for_success() {
@@ -852,7 +874,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
     function select_levelSet(name, setControl) {
 
-        var i, select;
+        var i, select, options;
 
         if (setControl === true) {
             select = $('levelset-select');
@@ -891,13 +913,11 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         gArrows = [];
 
         gA = gridSpec('arena',
-            OFFSET_X, OFFSET_Y,
             gCellWidth, gCellHeight
         );
         gA.clear_container();
 
         gM = gridSpec('molecule',
-            MOLECULE_OFFSET_X, MOLECULE_OFFSET_Y,
             gMoleculeCellWidth, gMoleculeCellHeight
         );
         gM.clear_container();
@@ -1004,15 +1024,13 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
     function LevelSet(levelSet) {
 
-
-        var self = xObject(LevelSetClass);
+        var self = Object.create(LevelSetClass);
 
         self.name = levelSet.name;
         self.credits = levelSet.credits;
         self.license = levelSet.license;
         self.levels = levelSet.levels;
         self.iLevel = 0;
-
 
         self.create_selector();
 
@@ -1021,7 +1039,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
         return self;
     }
-    LevelSetClass = {
+    var LevelSetClass = {
 
         keys: [],
         selector: null,
@@ -1044,19 +1062,17 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
             for (level = 0; level < this.levels.length;) {
                 level += 1;
-                select.push(format(
-                    '<option value="\f">Level \f: \f</option>',
-                    level,
-                    level,
-                    this.levels[level - 1].name
-                ));
+                select.push(
+                    '<option value="' + level
+                    + '">Level ' + level
+                    + ': '
+                    + this.levels[level - 1].name
+                );
             }
             this.selector = 'level-select-' + this.name;
             $('level-selector-span').innerHTML += select.join('') + "</select>";
 
-
             return;
-
         },
 
         bind_selector: function (self) {
@@ -1066,7 +1082,6 @@ if (typeof(KP_ATOMIX) === 'undefined') {
                     self.onLevelSelect();
                 }, 100);
             }, false);
-
         },
 
         onLevelSelect: function () {
@@ -1103,6 +1118,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             else {
                 gg = this.level.gameData;
                 $(this.selector).selectedIndex = lvl;
+                xMoveTo('molecule', 0, 0);
             }
         }
     };
@@ -1138,13 +1154,13 @@ if (typeof(KP_ATOMIX) === 'undefined') {
                 gg.history = query.history;
             }
             catch (e) {
-                alert('Invalid History: ' + e);
+                alert(e.message);
             }
         }
 
-        dlgSuccess = xxModalDialog('success-dialog');
-        dlgBookmark = xxModalDialog('bookmark-dialog');
-        dlgAjax = xxModalDialog('ajax-dialog');
+        dlgSuccess = kp_ModalDialog('success-dialog');
+        dlgBookmark = kp_ModalDialog('bookmark-dialog');
+        dlgAjax = kp_ModalDialog('ajax-dialog');
 
         gAjaxRequest = new xHttpRequest();
         dlgSuccess.get('user').value = gUserName;
@@ -1155,6 +1171,969 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
         xHeight('loading', 0);
     }
+
+    /* My extensions to xlib */
+
+    var kp_Shield = (function(zMin, zIncr)  {
+
+      zMin = zMin || 10000
+      zIncr = zIncr || 100
+
+      var zList = [0]
+        , _shield = null
+      ;
+
+      function isUp() {
+        return zList.length  > 1;
+      }
+
+      function shield() {
+        return _shield || create();
+      };
+
+      function create() {
+        if (_shield) return _shield;
+        _shield = document.createElement('div');
+        _shield.className = 'xShieldElement';
+        document.body.appendChild(_shield);
+        zIndex(zMin);
+        return _shield;
+      }
+
+      function show(z) {
+        var e = shield()
+          , ds = xDocSize()
+        ;
+        zIndex(z);
+        xMoveTo(e, 0, 0);
+        xResizeTo(e,
+          Math.max(ds.w, xClientWidth()),
+          Math.max(ds.h, xClientHeight())
+        )
+      }
+
+      function hide() {
+        var e = shield();
+        xResizeTo(e, 10, 10);
+        xMoveTo(e, -10, -10);
+      }
+
+      function zNext(z) {
+        return Math.max(zMin, z || 0, zList[0]) + zIncr;
+      }
+
+      function zIndex(z) {
+        return kp_zIndex(shield(), z);
+      }
+
+      function grab(z) {
+        z = zNext(z);
+        zList.unshift(z);
+        show(z);
+        return z;
+      }
+
+      function release() {
+        switch (zList.length) {
+          case 0:
+            zList = [0]
+          case 1:
+            break;
+          default:
+            (zList.shift());
+            show(zList[0]);
+        }
+        if (zList.length < 2) {
+          hide();
+        }
+        return zList.length - 1;
+      }
+
+      return {
+        grab: grab,
+        release: release,
+        isUp: isUp
+      };
+
+    }());
+
+    function kp_ModalDialog(sId) {
+
+      addClass('xxModalDialog');
+
+      function get(s) {
+        return xGetElementById(sId + (s ? '-' + s : ''));
+      };
+
+      function addClass(c, s) {
+        xAddClass(get(s), c);
+      }
+
+      function show() {
+        zIndex(kp_Shield.grab() + 1);
+        return center();
+      }
+
+      function hide() {
+        var dialog = get();
+        if (dialog) {
+          xMoveTo(dialog, -xWidth(dialog), 0);
+        }
+        kp_Shield.release();
+      }
+
+      function center () {
+        var dialog = get();
+        dialog.style.height = 'auto';
+        xCenter(dialog);
+        return this;
+      }
+
+      function zIndex(z) {
+        kp_zIndex(get(), z);
+      }
+
+      return {
+        show: show,
+        hide: hide,
+        get: get,
+        center: center
+      };
+
+    };
+
+    function kp_zIndex(e, z) {
+      if (!(
+        (e = xGetElementById(e)) &&
+        xDef(e.style, e.style.zIndex)
+      )) {
+        return 0;
+      }
+      if (xDef(z) && xNum(z)) {
+          e.style.zIndex = z;
+      }
+      z = xGetComputedStyle(e, 'zIndex', 1);
+      return isNaN(z) ? 0 : z;
+    }
+
+    (function() {
+      if ((typeof Object.create) !== 'undefined') return;
+      Object.create = function (o) {
+        function F() {}
+        F.prototype = o;
+        return new F();
+      }
+    }());
+
+    // Code in this section is automatically generated
+    // Any changes will be lost on the next build
+    //INCLUDE_XLIB
+
+// xAddClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xAddClass(e, c)
+{
+  if ((e=xGetElementById(e))!=null) {
+    var s = '';
+    if (e.className.length && e.className.charAt(e.className.length - 1) != ' ') {
+      s = ' ';
+    }
+    if (!xHasClass(e, c)) {
+      e.className += s + c;
+      return true;
+    }
+  }
+  return false;
+}
+
+// xAddEventListener r8, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xAddEventListener(e,eT,eL,cap)
+{
+  if(!(e=xGetElementById(e)))return;
+  eT=eT.toLowerCase();
+  if(e.addEventListener)e.addEventListener(eT,eL,cap||false);
+  else if(e.attachEvent)e.attachEvent('on'+eT,eL);
+  else {
+    var o=e['on'+eT];
+    e['on'+eT]=typeof o=='function' ? function(v){o(v);eL(v);} : eL;
+  }
+}
+
+// xAniLine r1, Copyright 2006-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xAniLine(e, x, y, t, a, oe)
+{
+  if (!(e=xGetElementById(e))) return;
+  var x0 = xLeft(e), y0 = xTop(e); // start positions
+  x = Math.round(x); y = Math.round(y);
+  var dx = x - x0, dy = y - y0; // displacements
+  var fq = 1 / t; // frequency
+  if (a) fq *= (Math.PI / 2);
+  var t0 = new Date().getTime(); // start time
+  var tmr = setInterval(
+    function() {
+      var et = new Date().getTime() - t0; // elapsed time
+      if (et < t) {
+        var f = et * fq; // constant velocity
+        if (a == 1) f = Math.sin(f); // sine acceleration
+        else if (a == 2) f = 1 - Math.cos(f); // cosine acceleration
+        f = Math.abs(f);
+        e.style.left = Math.round(f * dx + x0) + 'px'; // instantaneous positions
+        e.style.top = Math.round(f * dy + y0) + 'px';
+      }
+      else {
+        clearInterval(tmr);
+        e.style.left = x + 'px'; // target positions
+        e.style.top = y + 'px';
+        if (typeof oe == 'function') oe(); // 'onEnd' handler
+        else if (typeof oe == 'string') eval(oe);
+      }
+    }, 10 // timer resolution
+  );
+}
+
+// xCamelize r1, Copyright 2007-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xCamelize(cssPropStr)
+{
+  var i, c, a, s;
+  a = cssPropStr.split('-');
+  s = a[0];
+  for (i=1; i<a.length; ++i) {
+    c = a[i].charAt(0);
+    s += a[i].replace(c, c.toUpperCase());
+  }
+  return s;
+}
+
+// xCenter r1, Copyright 2009 Arthur Blake (http://arthur.blake.name)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+/**
+ * Center a positioned element within the current client window space.
+ *
+ * If w,h not specified, then the existing width and height of e are used.
+ *
+ * @param e an existing absolutely positioned dom element (or an id to such an element)
+ * @param w (optional) width to resize element to
+ * @param h (optional) height  to resize element to
+ */
+function xCenter(e, w, h)
+{
+  var ww=xClientWidth(),wh=xClientHeight(),x=0,y=0;
+  e = xGetElementById(e);
+  if (e)
+  {
+    w = w || xWidth(e);
+    h = h || xHeight(e);
+
+    if (ww < w)
+    {
+      w = ww;
+    }
+    else
+    {
+      x = (ww - w) / 2;
+    }
+    if (wh < h)
+    {
+      h = wh;
+    }
+    else
+    {
+      y = (wh - h) / 2;
+    }
+
+    // adjust for any scrolling
+    x += xScrollLeft();
+    y += xScrollTop();
+
+    xResizeTo(e, w, h);
+    xMoveTo(e, x, y);
+  }
+}
+
+// xClientHeight r6, Copyright 2001-2008 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xClientHeight()
+{
+  var v=0,d=document,w=window;
+  if((!d.compatMode || d.compatMode == 'CSS1Compat') /* && !w.opera */ && d.documentElement && d.documentElement.clientHeight)
+    {v=d.documentElement.clientHeight;}
+  else if(d.body && d.body.clientHeight)
+    {v=d.body.clientHeight;}
+  else if(xDef(w.innerWidth,w.innerHeight,d.width)) {
+    v=w.innerHeight;
+    if(d.width>w.innerWidth) v-=16;
+  }
+  return v;
+}
+
+// xClientWidth r5, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xClientWidth()
+{
+  var v=0,d=document,w=window;
+  if((!d.compatMode || d.compatMode == 'CSS1Compat') && !w.opera && d.documentElement && d.documentElement.clientWidth)
+    {v=d.documentElement.clientWidth;}
+  else if(d.body && d.body.clientWidth)
+    {v=d.body.clientWidth;}
+  else if(xDef(w.innerWidth,w.innerHeight,d.height)) {
+    v=w.innerWidth;
+    if(d.height>w.innerHeight) v-=16;
+  }
+  return v;
+}
+
+// xDef r2, Copyright 2001-2011 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xDef()
+{
+  for (var i=0, l=arguments.length; i<l; ++i) {
+    if (typeof(arguments[i]) === 'undefined')
+      return false;
+  }
+  return true;
+}
+
+// xDocSize r1, Copyright 2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xDocSize()
+{
+  var b=document.body, e=document.documentElement;
+  var esw=0, eow=0, bsw=0, bow=0, esh=0, eoh=0, bsh=0, boh=0;
+  if (e) {
+    esw = e.scrollWidth;
+    eow = e.offsetWidth;
+    esh = e.scrollHeight;
+    eoh = e.offsetHeight;
+  }
+  if (b) {
+    bsw = b.scrollWidth;
+    bow = b.offsetWidth;
+    bsh = b.scrollHeight;
+    boh = b.offsetHeight;
+  }
+//  alert('compatMode: ' + document.compatMode + '\n\ndocumentElement.scrollHeight: ' + esh + '\ndocumentElement.offsetHeight: ' + eoh + '\nbody.scrollHeight: ' + bsh + '\nbody.offsetHeight: ' + boh + '\n\ndocumentElement.scrollWidth: ' + esw + '\ndocumentElement.offsetWidth: ' + eow + '\nbody.scrollWidth: ' + bsw + '\nbody.offsetWidth: ' + bow);
+  return {w:Math.max(esw,eow,bsw,bow),h:Math.max(esh,eoh,bsh,boh)};
+}
+
+// xEnableDrag r8, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xEnableDrag(id,fS,fD,fE)
+{
+  var mx = 0, my = 0, el = xGetElementById(id);
+  if (el) {
+    el.xDragEnabled = true;
+    xAddEventListener(el, 'mousedown', dragStart, false);
+  }
+  // Private Functions
+  function dragStart(e)
+  {
+    if (el.xDragEnabled) {
+      var ev = new xEvent(e);
+      xPreventDefault(e);
+      mx = ev.pageX;
+      my = ev.pageY;
+      xAddEventListener(document, 'mousemove', drag, false);
+      xAddEventListener(document, 'mouseup', dragEnd, false);
+      if (fS) {
+        fS(el, ev.pageX, ev.pageY, ev);
+      }
+    }
+  }
+  function drag(e)
+  {
+    var ev, dx, dy;
+    xPreventDefault(e);
+    ev = new xEvent(e);
+    dx = ev.pageX - mx;
+    dy = ev.pageY - my;
+    mx = ev.pageX;
+    my = ev.pageY;
+    if (fD) {
+      fD(el, dx, dy, ev);
+    }
+    else {
+      xMoveTo(el, xLeft(el) + dx, xTop(el) + dy);
+    }
+  }
+  function dragEnd(e)
+  {
+    var ev = new xEvent(e);
+    xPreventDefault(e);
+    xRemoveEventListener(document, 'mouseup', dragEnd, false);
+    xRemoveEventListener(document, 'mousemove', drag, false);
+    if (fE) {
+      fE(el, ev.pageX, ev.pageY, ev);
+    }
+    if (xEnableDrag.drop) {
+      xEnableDrag.drop(el, ev);
+    }
+  }
+}
+
+xEnableDrag.drops = []; // static property
+
+// xEvent r11-a, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+// Modified by kp
+function xEvent(evt) // object prototype
+{
+  var e = evt || window.event;
+  if (!e) return;
+  this.type = e.type;
+  this.target = e.target || e.srcElement;
+
+  if (xDef(e.pageX)) {
+    this.pageX = e.pageX;
+    this.pageY = e.pageY;
+  }
+  else if (xDef(e.clientX)) {
+    this.pageX = e.clientX + xScrollLeft();
+    this.pageY = e.clientY + xScrollTop();
+  }
+  if (xDef(e.offsetX)) {
+    this.offsetX = e.offsetX;
+    this.offsetY = e.offsetY;
+  }
+  else {
+    this.offsetX = this.pageX - xPageX(this.target);
+    this.offsetY = this.pageY - xPageY(this.target);
+  }
+
+  this.keyCode = e.keyCode || e.which || 0;
+  this.shiftKey = e.shiftKey;
+  this.ctrlKey = e.ctrlKey;
+  this.altKey = e.altKey;
+
+  if (typeof e.type == 'string') {
+
+    switch (e.type.toLowerCase()) {
+      case 'mouseover':
+      case 'onmouseover':
+        this.relatedTarget = e.relatedTarget || e.fromElement
+      case 'mouseout':
+      case 'onmouseout':
+        this.relatedTarget = e.relatedTarget || e.toElement;
+      case 'default':
+        this.realatedTarget = null;
+      }
+
+    if (e.type.indexOf('click') != -1) {
+      this.button = 0;
+    }
+    else if (e.type.indexOf('mouse') != -1) {
+
+      if (e.which) {
+        this.button = e.which;
+      } else {
+        switch (e.button) {
+          case 2:
+            this.button = 3;
+            break;
+          case 4:
+            this.button = 2;
+            break;
+          default:
+            this.button = 1;
+        }
+      }
+    }
+  }
+}
+
+// xGetComputedStyle r7, Copyright 2002-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xGetComputedStyle(e, p, i)
+{
+  if(!(e=xGetElementById(e))) return null;
+  var s, v = 'undefined', dv = document.defaultView;
+  if(dv && dv.getComputedStyle){
+    s = dv.getComputedStyle(e,'');
+    if (s) v = s.getPropertyValue(p);
+  }
+  else if(e.currentStyle) {
+    v = e.currentStyle[xCamelize(p)];
+  }
+  else return null;
+  return i ? (parseInt(v) || 0) : v;
+}
+
+
+// xGetElementById r2, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xGetElementById(e)
+{
+  if (typeof(e) == 'string') {
+    if (document.getElementById) e = document.getElementById(e);
+    else if (document.all) e = document.all[e];
+    else e = null;
+  }
+  return e;
+}
+
+// xHasClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xHasClass(e, c)
+{
+  e = xGetElementById(e);
+  if (!e || e.className=='') return false;
+  var re = new RegExp("(^|\\s)"+c+"(\\s|$)");
+  return re.test(e.className);
+}
+
+// xHeight r8, Copyright 2001-2010 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xHeight(e,h)
+{
+  var css, pt=0, pb=0, bt=0, bb=0;
+  if(!(e=xGetElementById(e))) return 0;
+  if (xNum(h)) {
+    if (h<0) h = 0;
+    else h=Math.round(h);
+  }
+  else h=-1;
+  css=xDef(e.style);
+  if (e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    h = xClientHeight();
+  }
+  else if(css && xDef(e.offsetHeight) && xStr(e.style.height)) {
+    if(h>=0) {
+      if (document.compatMode=='CSS1Compat') {
+        pt=xGetComputedStyle(e,'padding-top',1);
+        if (pt !== null) {
+          pb=xGetComputedStyle(e,'padding-bottom',1);
+          bt=xGetComputedStyle(e,'border-top-width',1);
+          bb=xGetComputedStyle(e,'border-bottom-width',1);
+        }
+        // Should we try this as a last resort?
+        // At this point getComputedStyle and currentStyle do not exist.
+        else if(xDef(e.offsetHeight,e.style.height)){
+          e.style.height=h+'px';
+          pt=e.offsetHeight-h;
+        }
+      }
+      h-=(pt+pb+bt+bb);
+      if(isNaN(h)||h<0) return;
+      else e.style.height=h+'px';
+    }
+    h=e.offsetHeight;
+  }
+  else if(css && xDef(e.style.pixelHeight)) {
+    if(h>=0) e.style.pixelHeight=h;
+    h=e.style.pixelHeight;
+  }
+  return h;
+}
+
+// xHttpRequest r11, Copyright 2006-2011 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xHttpRequest() // object prototype
+{
+  // Private Properties
+  var
+    _i = this, // instance object
+    _r = null, // XMLHttpRequest object
+    _t = null, // timer
+    _f = null, // callback function
+    _x = false, // XML response pending
+    _o = null, // user data object passed to _f
+    _c = false; // self-clean after send() completed?
+  // Public Properties
+  _i.OK = 0;
+  _i.NOXMLOBJ = 1;
+  _i.REQERR = 2;
+  _i.TIMEOUT = 4;
+  _i.RSPERR = 8;
+  _i.NOXMLCT = 16;
+  _i.ABORTED = 32;
+  _i.status = _i.OK;
+  _i.error = null;
+  _i.busy = false;
+  // Private Methods
+  function _clean()
+  {
+    _i = null;
+    _r = null;
+    _t = null;
+    _f = null;
+    _x = false;
+    _o = null;
+    _c = false;
+  }
+  function _clrTimer()
+  {
+    if (_t) {
+      clearTimeout(_t);
+    }
+    _t = null;
+  }
+  function _endCall()
+  {
+    if (_f) {
+      _f(_r, _i.status, _o);
+    }
+    _f = null; _x = false; _o = null;
+    _i.busy = false;
+    if (_c) {
+      _clean();
+    }
+  }
+  function _abort(s)
+  {
+    _clrTimer();
+    try {
+      _r.onreadystatechange = function(){};
+      _r.abort();
+    }
+    catch (e) {
+      _i.status |= _i.RSPERR;
+      _i.error = e;
+    }
+    _i.status |= s;
+    _endCall();
+  }
+  function _newXHR()
+  {
+    try { _r = new XMLHttpRequest(); }
+    catch (e) { try { _r = new ActiveXObject('Msxml2.XMLHTTP'); }
+    catch (e) { try { _r = new ActiveXObject('Microsoft.XMLHTTP'); }
+    catch (e) { _r = null; _i.error = e; }}}
+    if (!_r) { _i.status |= _i.NOXMLOBJ; }
+  }
+  // Private Event Listeners
+  function _oc() // onReadyStateChange
+  {
+    var ct;
+    if (_r.readyState == 4) {
+      _clrTimer();
+      try {
+        if (_r.status != 200) _i.status |= _i.RSPERR;
+        if (_x) {
+          ct = _r.getResponseHeader('Content-Type');
+          if (ct && ct.indexOf('xml') == -1) { _i.status |= _i.NOXMLCT; }
+        }
+        delete _r['onreadystatechange']; // _r.onreadystatechange = null;
+      }
+      catch (e) {
+        _i.status |= _i.RSPERR;
+        _i.error = e;
+      }
+      _endCall();
+    }
+  }
+  function _ot() // onTimeout
+  {
+    _t = null;
+    _abort(_i.TIMEOUT);
+  }
+  // Public Methods
+  this.send = function(m, u, d, t, r, x, o, f, c)
+  {
+    var q, ct;
+    if (!_r || _i.busy) { return false; }
+    _c = (c ? true : false);
+    m = m.toUpperCase();
+    q = (u.indexOf('?') >= 0);
+    if (m != 'POST') {
+      if (d) {
+        u += (q ? '&' : '?') + d;
+        q = true;
+      }
+      d = null;
+    }
+    if (r) {
+      u += (q ? '&' : '?') + r + '=' + Math.random();
+    }
+    _x = (x ? true : false);
+    _o = o;
+    _f = f;
+    _i.busy = true;
+    _i.status = _i.OK;
+    _i.error = null;
+    if (t) { _t = setTimeout(_ot, t); }
+    try {
+      _r.open(m, u, true);
+      if (m == 'GET') {
+        _r.setRequestHeader('Cache-Control', 'no-cache');
+        ct = 'text/' + (_x ? 'xml':'plain');
+        if (_r.overrideMimeType) {_r.overrideMimeType(ct);}
+        _r.setRequestHeader('Content-Type', ct);
+      }
+      else if (m == 'POST') {
+        _r.setRequestHeader('Method', 'POST ' + u + ' HTTP/1.1');
+        _r.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      }
+      _r.onreadystatechange = _oc;
+      _r.send(d);
+    }
+    catch(e) {
+      _clrTimer();
+      _f = null; _x = false; _o = null;
+      _i.busy = false;
+      _i.status |= _i.REQERR;
+      _i.error = e;
+      if (_c) {
+        _clean();
+      }
+      return false;
+    }
+    return true;
+  };
+  this.abort = function()
+  {
+    if (!_r || !_i.busy) { return false; }
+    _abort(_i.ABORTED);
+    return true;
+  };
+  this.reinit = function()
+  {
+    // Halt any HTTP request that may be in progress.
+    this.abort();
+    // Set all private vars to initial state.
+    _clean();
+    _i = this;
+    // Set all (non-constant) public properties to initial state.
+    _i.status = _i.OK;
+    _i.error = null;
+    _i.busy = false;
+    // Create the private XMLHttpRequest object.
+    _newXHR();
+    return true;
+  };
+  // Constructor Code
+  _newXHR();
+}
+
+// xLeft r2, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xLeft(e, iX)
+{
+  if(!(e=xGetElementById(e))) return 0;
+  var css=xDef(e.style);
+  if (css && xStr(e.style.left)) {
+    if(xNum(iX)) e.style.left=iX+'px';
+    else {
+      iX=parseInt(e.style.left);
+      if(isNaN(iX)) iX=xGetComputedStyle(e,'left',1);
+      if(isNaN(iX)) iX=0;
+    }
+  }
+  else if(css && xDef(e.style.pixelLeft)) {
+    if(xNum(iX)) e.style.pixelLeft=iX;
+    else iX=e.style.pixelLeft;
+  }
+  return iX;
+}
+
+// xMoveTo r1, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xMoveTo(e,x,y)
+{
+  xLeft(e,x);
+  xTop(e,y);
+}
+
+// xNum r3, Copyright 2001-2011 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xNum()
+{
+  for (var i=0, l=arguments.length; i<l; ++i) {
+    if (isNaN(arguments[i]) || typeof(arguments[i]) !== 'number')
+      return false;
+  }
+  return true;
+}
+
+// xPageX r2, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xPageX(e)
+{
+  var x = 0;
+  e = xGetElementById(e);
+  while (e) {
+    if (xDef(e.offsetLeft)) x += e.offsetLeft;
+    e = xDef(e.offsetParent) ? e.offsetParent : null;
+  }
+  return x;
+}
+
+// xPageY r4, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xPageY(e)
+{
+  var y = 0;
+  e = xGetElementById(e);
+  while (e) {
+    if (xDef(e.offsetTop)) y += e.offsetTop;
+    e = xDef(e.offsetParent) ? e.offsetParent : null;
+  }
+  return y;
+}
+
+// xPreventDefault r1, Copyright 2004-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xPreventDefault(e)
+{
+  if (e && e.preventDefault) e.preventDefault();
+  else if (window.event) window.event.returnValue = false;
+}
+
+// xRemoveClass r3, Copyright 2005-2007 Daniel Frechette - modified by Mike Foster
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xRemoveClass(e, c)
+{
+  if(!(e=xGetElementById(e))) return false;
+  e.className = e.className.replace(new RegExp("(^|\\s)"+c+"(\\s|$)",'g'),
+    function(str, p1, p2) { return (p1 == ' ' && p2 == ' ') ? ' ' : ''; }
+  );
+  return true;
+}
+
+// xRemoveEventListener r6, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xRemoveEventListener(e,eT,eL,cap)
+{
+  if(!(e=xGetElementById(e)))return;
+  eT=eT.toLowerCase();
+  if(e.removeEventListener)e.removeEventListener(eT,eL,cap||false);
+  else if(e.detachEvent)e.detachEvent('on'+eT,eL);
+  else e['on'+eT]=null;
+}
+
+// xResizeTo r2, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xResizeTo(e, w, h)
+{
+  return {
+    w: xWidth(e, w),
+    h: xHeight(e, h)
+  };
+}
+
+// xScrollLeft r4, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xScrollLeft(e, bWin)
+{
+  var w, offset=0;
+  if (!xDef(e) || bWin || e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    w = window;
+    if (bWin && e) w = e;
+    if(w.document.documentElement && w.document.documentElement.scrollLeft) offset=w.document.documentElement.scrollLeft;
+    else if(w.document.body && xDef(w.document.body.scrollLeft)) offset=w.document.body.scrollLeft;
+  }
+  else {
+    e = xGetElementById(e);
+    if (e && xNum(e.scrollLeft)) offset = e.scrollLeft;
+  }
+  return offset;
+}
+
+// xScrollTop r4, Copyright 2001-2009 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xScrollTop(e, bWin)
+{
+  var w, offset=0;
+  if (!xDef(e) || bWin || e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    w = window;
+    if (bWin && e) w = e;
+    if(w.document.documentElement && w.document.documentElement.scrollTop) offset=w.document.documentElement.scrollTop;
+    else if(w.document.body && xDef(w.document.body.scrollTop)) offset=w.document.body.scrollTop;
+  }
+  else {
+    e = xGetElementById(e);
+    if (e && xNum(e.scrollTop)) offset = e.scrollTop;
+  }
+  return offset;
+}
+
+// xStopPropagation r1, Copyright 2004-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xStopPropagation(evt)
+{
+  if (evt && evt.stopPropagation) evt.stopPropagation();
+  else if (window.event) window.event.cancelBubble = true;
+}
+
+// xStr r2, Copyright 2001-2011 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xStr(s)
+{
+  for (var i=0, l=arguments.length; i<l; ++i) {
+    if (typeof(arguments[i]) !== 'string')
+      return false;
+  }
+  return true;
+}
+
+// xTop r2, Copyright 2001-2007 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xTop(e, iY)
+{
+  if(!(e=xGetElementById(e))) return 0;
+  var css=xDef(e.style);
+  if(css && xStr(e.style.top)) {
+    if(xNum(iY)) e.style.top=iY+'px';
+    else {
+      iY=parseInt(e.style.top);
+      if(isNaN(iY)) iY=xGetComputedStyle(e,'top',1);
+      if(isNaN(iY)) iY=0;
+    }
+  }
+  else if(css && xDef(e.style.pixelTop)) {
+    if(xNum(iY)) e.style.pixelTop=iY;
+    else iY=e.style.pixelTop;
+  }
+  return iY;
+}
+
+// xWidth r8, Copyright 2001-2010 Michael Foster (Cross-Browser.com)
+// Part of X, a Cross-Browser Javascript Library, Distributed under the terms of the GNU LGPL
+function xWidth(e,w)
+{
+  var css, pl=0, pr=0, bl=0, br=0;
+  if(!(e=xGetElementById(e))) return 0;
+  if (xNum(w)) {
+    if (w<0) w = 0;
+    else w=Math.round(w);
+  }
+  else w=-1;
+  css=xDef(e.style);
+  if (e == document || e.tagName.toLowerCase() == 'html' || e.tagName.toLowerCase() == 'body') {
+    w = xClientWidth();
+  }
+  else if(css && xDef(e.offsetWidth) && xStr(e.style.width)) {
+    if(w>=0) {
+      if (document.compatMode=='CSS1Compat') {
+        pl=xGetComputedStyle(e,'padding-left',1);
+        if (pl !== null) {
+          pr=xGetComputedStyle(e,'padding-right',1);
+          bl=xGetComputedStyle(e,'border-left-width',1);
+          br=xGetComputedStyle(e,'border-right-width',1);
+        }
+        // Should we try this as a last resort?
+        // At this point getComputedStyle and currentStyle do not exist.
+        else if(xDef(e.offsetWidth,e.style.width)){
+          e.style.width=w+'px';
+          pl=e.offsetWidth-w;
+        }
+      }
+      w-=(pl+pr+bl+br);
+      if(isNaN(w)||w<0) return;
+      else e.style.width=w+'px';
+    }
+    w=e.offsetWidth;
+  }
+  else if(css && xDef(e.style.pixelWidth)) {
+    if(w>=0) e.style.pixelWidth=w;
+    w=e.style.pixelWidth;
+  }
+  return w;
+}
+
+
+    //INCLUDE_XLIB_END
 
     KP_ATOMIX.init = init;
 

@@ -6,35 +6,32 @@
     <title>kp-atomix</title>
     <link href="atomix.css" rel="stylesheet" type="text/css" />
 
-<script>
-   window.onload = function () {
-       KP_ATOMIX.init();
-   }
-   window.onunload = function(){}
-</script>
-
+    <script>
+       window.onload = function () {
+           KP_ATOMIX.init();
+       }
+       window.onunload = function(){}
+    </script>
 
   </head>
   <body>
 
-    <!-- start headbar -->
-
+<!-- start headbar -->
 <div id="headbar">
 
-  <a href="index.html">Home</a>
+  <a href="">Home</a>
   &nbsp;&nbsp;
   <a href="about.html">About</a>
 
   &nbsp;&nbsp;&nbsp;
-  Show Solutions for:
+  Solutions for:
     <a href="solutions/katomic.html" id="show-solutions-katomic">katomic</a>&nbsp;
     <a href="solutions/original.html" id="show-solutions-original">original</a>&nbsp;
     <a href="solutions/pack1.html" id="show-solutions-pack1">pack1</a>&nbsp;
     <a href="solutions/mystery.html" id="show-solutions-mystery">mystery</a>
 
 </div>
-
-    <!-- end headbar -->
+<!-- end headbar -->
 
     <!-- start contents -->
 
@@ -71,31 +68,45 @@
 
     <hr />
 
-    <div id="loading">Atomix is loading ...</div>
-    <div id="main">
-      <div id="arena"></div>
-
-      <div id="molecule"></div>
-
-      <div class="center" id="move-controls">
-
-        <a href="#" id="history-undo">Undo</a>
-
-        &nbsp;&nbsp;&nbsp;
-        <span id="move-no">&nbsp;</span>
-
-        &nbsp;&nbsp;&nbsp;
-
-        <a href="#" id="history-redo">Redo</a>
-      </div>
+    <div id="loading">
+      Atomix is loading ...
+      <noscript><br />... sorry, &nbsp;javascript is disabled so you can't play :-(</noscript>
+      <hr />
 
     </div>
+
+    <table ><tr>
+
+      <td class="arena-border">
+        <div id="arena-container">
+          <div id="arena"></div>
+          <div id="move-controls"  >
+            <a href="#" id="history-undo">Undo</a>
+              &nbsp;&nbsp;&nbsp;
+
+            <span id="move-no">&nbsp;</span>
+              &nbsp;&nbsp;&nbsp;
+            <a href="#" id="history-redo">Redo</a>
+          </div>
+        </div>
+      </td>
+
+      <td >
+        <div id="molecule-container">
+
+          <div id="molecule"></div>
+        </div>
+      </td>
+
+
+    </tr></table>
+
 
     <!-- end contents -->
 
     <!-- start after-main-->
-    <div id="after-main">
 
+    <div id="after-main">
 
 <hr />
 <div id="levelset-credits">
@@ -104,10 +115,8 @@
   Credits: <span id="levelset-credits-credit">&nbsp;</span>
     &nbsp;&nbsp;
   License: <span id="levelset-credits-license">&nbsp;</span>
+
 </div>
-
-
-<!-- end blurb -->
 
         <!-- start footer -->
 
@@ -115,11 +124,12 @@
 
   <hr />
 
-  <a href="http://code.google.com/p/kp-atomix/">kp-atomix</a>
-  is a javascript version of the
+  <a href="http://code.google.com/p/kp-atomix/downloads/list">kp-atomix</a>,
+  a free javascript version of the
   <a href="http://kde.org/"> kde</a>
   game
   <a href="http://games.kde.org/game.php?game=katomic">
+
     katomic
   </a>
 
@@ -131,11 +141,9 @@
 
         <!-- end footer -->
 
-
     </div>
     <!-- end after-main -->
 
-    <!-- start tail_scripts -->
 
 <!-- start dialogs -->
 
@@ -146,24 +154,21 @@
       <form id="success-dialog-form">
 
           <p id="success-dialog-message">&nbsp;</p>
-          <p style="display:none">
+          <p>
              <b>Please Enter Your</b><br />
              <b>Name or Nickname</b>
-             <br />
-             <input type="input" value='Me Is Name' class="center" id="success-dialog-user" />
 
+             <br />
+             <input type="text" value='Me Is Name' class="center" id="success-dialog-user" />
           </p>
 
           <p class="buttons">
             <input id="success-dialog-button-close" type="button" value="Close" />
-            <input
-                   style="display:none"
-                   id="success-dialog-button-save"
-                   type="button" value="Submit"
-            />
+            <input id="success-dialog-button-save"  type="button" value="Submit" />
           </p>
 
       </form>
+
     </div>
 
      <div id="ajax-dialog">
@@ -176,7 +181,6 @@
 
           <p class="buttons">
             <input id="ajax-dialog-button-close" type="button" value="Close" />
-
           </p>
 
       </form>
@@ -209,7 +213,7 @@
     </div>
 
 <!-- end dialogs -->
-<script src="js/atomix_xlib.js"></script>
+   <!-- start tail_scripts -->
 <script src="js/atomix.js"></script>
 <script src="levels/katomic.js"></script>
 <script src="levels/original.js"></script>
@@ -218,4 +222,5 @@
     <!-- end tail scripts -->
 
   </body>
+
 </html>
