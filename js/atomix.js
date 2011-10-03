@@ -79,7 +79,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             '3': 'bond-bottom-right-double',
             '4': 'bond-bottom-left-double'
         },
-        browserTitle = 'Atomix Online at SDF',
+        browserTitle = 'kp-atomix',
         moveEncoder = 'abcdefghijklmnopqrstuvwxyz'.split(''),
         moveDecoder = {},
         gItems,
