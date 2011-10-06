@@ -243,12 +243,10 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             doneKey = true;
 
         if (kp_Shield.isUp()) {
-            console.log('shield is up')
             return;
         }
 
         function dok(a, b){
-            console.log('dok:', a, b)
             if (e.shiftKey && b) {
                 onClickLink(b);
             }
@@ -264,7 +262,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
                 onClickArrow('arrow-' + d);
             }
         }
-        console.log(e.keyCode + ', ' + (e.shiftKey ? 'shifted': 'normal'));
+
         switch(e.keyCode) {
 
             case 85: //u
@@ -536,10 +534,10 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             return;
 
         case 'smaller-link':
-            gCellHeight -= 2;
-            gCellWidth -= 2;
-            gMoleculeCellHeight -= 2;
-            gMoleculeCellWidth -= 2;
+            gCellHeight = Math.max(6, gCellHeight - 2);
+            gCellWidth = Math.max(6, gCellHeight - 2);
+            gMoleculeCellHeight = Math.max(6, gMoleculeCellHeight - 2);
+            gMoleculeCellWidth = Math.max(6, gMoleculeCellWidth -2);
             start_level(gLevelSet.iLevel);
             return;
 
