@@ -2,16 +2,16 @@ if(!KP_ATOMIX){var KP_ATOMIX={}}
 KP_ATOMIX.solutions = [
   {
     "levelSet": "pack1",
-    "lastModified": "2014-02-15 03:09:57",
+    "lastModified": "2015-12-27 23:29:58",
     "source": "http://figlief.pythonanywhere.com/solutions/pack1.json",
     "usage": "Use as you wish but a link to https://code.google.com/p/kp-atomix would be welcome."
   },
   {
     "level": "1",
     "user": "Blodhemn",
-    "moves": 68,
-    "history": "bcecjdjckikeefegkejejejdjdededefefdfegdgddjdjdjelelglgigjelelelglgjgigififgffgeggighegeddgfgfgfiedjdjdjejcjdfbgbheeeehdhghehdhdkclblblbjejeleeegegdgdgdjecegegfgdjejbjdjdjdgfiiifgfidgfgdfdjelglglghiiifjjgjgjgihgigigijgiiifihihlelelekekgkgkgidkgkgkgjgifiiiigijihgbgegeheighg",
-    "date": "2012-03-13 15:16:47"
+    "moves": 66,
+    "history": "ejelelglehdhdhdkefehheeeeeegegdgdgdjdjejjdjckikebceckejejejdjdededegegdgddjdjdjefgegegedfbgbedjdlelgjelejdjejcjdlgiglelglgjgigififgfgbgegehegifififgehghecehehfhclblblbjbjdjdjdhdhehdgdjglgihlelelekekgkgkgjdkgkgjijijifjjgjhgigigijgiiifhfifihiiiiggjgiijihgkgjighggifi",
+    "date": "2015-12-17 13:27:28"
   },
   {
     "level": "2",
@@ -92,17 +92,17 @@ KP_ATOMIX.solutions = [
   },
   {
     "level": "13",
-    "user": "masa",
-    "moves": 77,
-    "history": "dcddedhdddgdgdgbhdddcfefebfbfbfdfdedghchchcedjejlljljljmjmdmdmdfdfcfejehbhdhdhdfegbgbjbhbhdhbgbjdhbhbjbiehchbhbgjhjfjfhfdddcfjdjgngjhfhcnenfgjejejegeghghghdhcfchdfdjcgcfcfbfbebnfhfgcgdhjejidhdigicgeieflhlhfhehdidicfcieighlhjigcgidigigdgejeghjejejehdjjjiiijijdjilimimdmlgfgliiiiiijijejdjdhjjfjfgfifididmdjejei",
-    "date": "2012-03-17 12:38:10"
+    "user": "Blodhemn",
+    "moves": 76,
+    "history": "djejghchejehcfefchceegbgbhdhnelelelfjhjfjfhfhfhcedhddcddddgdgdgbebfbhdddfbfdfjdjhjejgngjgjfjfjfgfghghghdfdedhcfchdfdjcgcgcgdidhdigicgeieieigigcgdhdfiiijflhlilimimdmliiilgdglllgcgcfdgdilgcglfhfbjbhbhdhbgbjdhbhehchbjbibhbghfhefcfbdddcfbebicfchdididigigdgejegijejejehdjjjdmdjhlhjehdhhjejiiijejehijejjjfjejei",
+    "date": "2015-11-23 13:09:51"
   },
   {
     "level": "14",
-    "user": "masa",
-    "moves": 61,
-    "history": "bededednfmfnfngndnfnbneneldldldnknklcljlejelfnflenfndnenfnfmgggjjkhkhchjfehehehihjijjljkklglijilgjijglhlflglhkhjhlhkhjgjebedjcjdjdldnklkldljncngnbnfnflfngnbmdndjelekjkhchjhefehehihkhlhjhkhljkjkhkindngedndiijindnfnbnenfmflflglhjhlklhkililhkhjhjg",
-    "date": "2012-04-16 14:53:56"
+    "user": "Blodhemn",
+    "moves": 60,
+    "history": "hchlknklklilebededldjkhkhkhckfkdkdedhlhdedgdldidjcjdmdkdjelelelblbibnbjbncnbnbkbjbjcjdjeiiifiliggggeifgfbedecldldldffkdkchlhejbjdkdgbjbibnbjelblfmfkfkdkdghghdhfdfdjdedihgdggeheigegnklklklikjkhkhchblbkbjcjdjejlifififghmhgegehlhfhmhghhfiffhfi",
+    "date": "2015-12-16 15:16:07"
   },
   {
     "level": "15",
@@ -142,9 +142,9 @@ KP_ATOMIX.solutions = [
   {
     "level": "20",
     "user": "Blodhemn",
-    "moves": 60,
-    "history": "lljlljgjhfhghhhlgecegggdgigegjgfgfkffhchegehcecgjgkgkgkleikifffiefjfebegjljgehkhklkjjcjejfcfgdjdgeiegcgjgkdkdjdegjjjckcikdkeldkdfijifjijijifjjcjhgigciiichciiiiheghgcgggbhhhcfchbfhfhbhedegedkdedefeddcdcdcghlhiiliicigichcicgfgcjjjcifififhfeff",
-    "date": "2012-10-19 14:32:04"
+    "moves": 59,
+    "history": "gecegggdgigeljgjgjgfhfhggfkfjcjfgdjdkdkeldkddjdedefefhchegehefcfebegjgkglljlkgklhhhleikifffijljgfijiklkjfjffffifjfjegeiegcgjgkdkckcihgigeghgciiigjcjchciehkhiiihiliibhhhcfchbfhfcecgdkdehbheddcdcgggcdcgcgfghlhicigichcicificjjjfifhfeffdege",
+    "date": "2015-12-27 23:29:58"
   },
   {
     "level": "21",
