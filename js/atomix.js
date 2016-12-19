@@ -21,7 +21,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
         gMoleculeCellWidth = MOLECULE_CELL_WIDTH,
 
         // time for atom to move one square (in milliseconds)
-        ANIMATION_TIME = 100,
+        ANIMATION_TIME = 50,
         gAnimationTime = ANIMATION_TIME,
 
         RIGHT = 0,
@@ -284,18 +284,29 @@ if (typeof(KP_ATOMIX) === 'undefined') {
                 dok('smaller-link', 'bookmark-link')
                 break;
 
+            case 37: //left arrow
             case 74: //j
                 doa('left');
                 break;
+            case 40: //down arrow
             case 75: //k
                 doa('down');
                 break;
+            case 39:  //right arrow
             case 76:  //l
                 doa('right');
                 break;
+            case 38:  //up arrow
             case 73:  //i
                 doa('up');
                 break;
+
+            case 16: //shift
+                var currentId = gCurrent.atom.id.split('-')[2];
+                var newId = (currentId + 1) % gItems.length;
+                set_current(gItems[newId]);
+                break;
+
 
             default:
                doneKey = false;
@@ -318,7 +329,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
 
     function set_current(oAtom) {
         gCurrent = oAtom;
-        show_arrows(oAtom);
+        show_arrows();
     }
 
     function cancel(e) {
@@ -967,6 +978,7 @@ if (typeof(KP_ATOMIX) === 'undefined') {
             btnClose.onclick = function () {
                 dlg.hide();
             };
+            btnClose.focus();
             dlg.show();
         }
     }
